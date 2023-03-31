@@ -1,0 +1,15 @@
+[package]
+name = "serde-csv-core"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+csv-core = "0.1.10"
+itoa = "1.0.6"
+ryu = "1.0.13"
+serde = { version = "1.0.159", default-features = false }
+
+[dev-dependencies]
+serde = { version = "1.0.159", default-features = false, features = ["derive"] }
