@@ -6,11 +6,32 @@ pub use serializer::Serializer;
 
 use serde::Serialize;
 
-pub fn to_byte_slice(v: impl Serialize, output: &mut [u8]) -> Result<usize> {
+pub fn to_slice<T>(v: &T, output: &mut [u8]) -> Result<usize>
+where
+    T: Serialize + ?Sized,
+{
     let writer = csv_core::Writer::new();
-    let mut s = Serializer::new(writer, output);
-    v.serialize(&mut s)?;
-    Ok(s.bytes_written())
+    let mut nwritten = 0;
+
+    let mut serializer = Serializer::new(writer, output);
+    v.serialize(&mut serializer)?;
+    nwritten += serializer.bytes_written();
+
+    let mut writer = serializer.into_writer();
+
+    let (result, n) = writer.terminator(&mut output[nwritten..]);
+    if result == csv_core::WriteResult::OutputFull {
+        return Err(Error::Overflow);
+    }
+    nwritten += n;
+
+    let (result, n) = writer.finish(&mut output[nwritten..]);
+    if result == csv_core::WriteResult::OutputFull {
+        return Err(Error::Overflow);
+    }
+    nwritten += n;
+
+    Ok(nwritten)
 }
 
 #[derive(Debug)]

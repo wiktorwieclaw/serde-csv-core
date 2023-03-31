@@ -16,6 +16,10 @@ impl<'out> Serializer<'out> {
         }
     }
 
+    pub fn into_writer(self) -> csv_core::Writer {
+        self.writer
+    }
+
     pub fn bytes_written(&self) -> usize {
         self.nwritten
     }
@@ -33,15 +37,6 @@ impl<'out> Serializer<'out> {
 
     fn delimiter(&mut self) -> Result<(), Error> {
         let (r, n) = self.writer.delimiter(&mut self.output[self.nwritten..]);
-        self.nwritten += n;
-        if r == csv_core::WriteResult::OutputFull {
-            return Err(Error::Overflow);
-        }
-        Ok(())
-    }
-
-    fn terminator(&mut self) -> Result<(), Error> {
-        let (r, n) = self.writer.terminator(&mut self.output[self.nwritten..]);
         self.nwritten += n;
         if r == csv_core::WriteResult::OutputFull {
             return Err(Error::Overflow);
@@ -285,7 +280,7 @@ impl ser::SerializeSeq for Compound<'_, '_> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.serializer.terminator()
+        Ok(())
     }
 }
 
@@ -302,7 +297,7 @@ impl ser::SerializeTuple for Compound<'_, '_> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.serializer.terminator()
+        Ok(())
     }
 }
 
@@ -319,7 +314,7 @@ impl ser::SerializeTupleStruct for Compound<'_, '_> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.serializer.terminator()
+        Ok(())
     }
 }
 
@@ -340,7 +335,7 @@ impl ser::SerializeStruct for Compound<'_, '_> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.serializer.terminator()
+        Ok(())
     }
 }
 
