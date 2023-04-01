@@ -15,6 +15,5 @@ itoa = "1.0.6"
 ryu = "1.0.13"
 serde = { version = "1.0.159", default-features = false }
 
-
 [dev-dependencies]
 serde = { version = "1.0.159", default-features = false, features = ["derive"] }
