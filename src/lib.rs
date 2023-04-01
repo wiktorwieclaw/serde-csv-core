@@ -6,6 +6,21 @@ pub use serializer::Serializer;
 
 use serde::Serialize;
 
+#[cfg(feature = "heapless")]
+pub fn to_vec<T, const N: usize>(v: &T) -> Result<heapless::Vec<u8, N>>
+where
+    T: Serialize + ?Sized,
+{
+    use heapless::Vec;
+
+    let mut buf: Vec<u8, N> = Vec::new();
+    unsafe { buf.resize_default(N).unwrap_unchecked() };
+
+    let len = to_slice(v, &mut buf)?;
+    buf.truncate(len);
+    Ok(buf)
+}
+
 pub fn to_slice<T>(v: &T, output: &mut [u8]) -> Result<usize>
 where
     T: Serialize + ?Sized,

@@ -5,11 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+heapless = ["dep:heapless"]
+
 [dependencies]
 csv-core = "0.1.10"
+heapless = { version = "0.7.16", default-features = false, optional = true }
 itoa = "1.0.6"
 ryu = "1.0.13"
 serde = { version = "1.0.159", default-features = false }
+
 
 [dev-dependencies]
 serde = { version = "1.0.159", default-features = false, features = ["derive"] }
