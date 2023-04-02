@@ -1,9 +1,15 @@
 [package]
 name = "serde-csv-core"
-version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version = "0.1.0"
+authors = ["Wiktor Więcław <lonevixu@gmail.com>"]
+categories = ["embedded", "encoding", "no-std"]
+description = "CSV serialization for #[no-std] crates"
+documentation = "https://docs.rs/serde-csv-core"
+keywords = ["csv", "csv-core", "serde", "serialization"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/wiktorwieclaw/serde-csv-core"
 
 [features]
 default = ["heapless"]
