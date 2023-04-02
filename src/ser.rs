@@ -1,32 +1,31 @@
+#[cfg(feature = "heapless")]
+use heapless::Vec;
 use serde::{ser, Serialize};
 
 #[cfg(feature = "heapless")]
-pub fn to_vec<T, const N: usize>(v: &T) -> Result<heapless::Vec<u8, N>>
+pub fn to_vec<T, const N: usize>(writer: &mut csv_core::Writer, value: &T) -> Result<Vec<u8, N>>
 where
     T: Serialize + ?Sized,
 {
-    use heapless::Vec;
-
     let mut buf: Vec<u8, N> = Vec::new();
+    // SAFETY:
+    // always safe since buf has capacity N
     unsafe { buf.resize_default(N).unwrap_unchecked() };
 
-    let len = to_slice(v, &mut buf)?;
+    let len = to_slice(writer, value, &mut buf)?;
     buf.truncate(len);
     Ok(buf)
 }
 
-pub fn to_slice<T>(v: &T, output: &mut [u8]) -> Result<usize>
+pub fn to_slice<T>(writer: &mut csv_core::Writer, value: &T, output: &mut [u8]) -> Result<usize>
 where
     T: Serialize + ?Sized,
 {
-    let writer = csv_core::Writer::new();
     let mut nwritten = 0;
 
     let mut serializer = Serializer::new(writer, output);
-    v.serialize(&mut serializer)?;
+    value.serialize(&mut serializer)?;
     nwritten += serializer.bytes_written();
-
-    let mut writer = serializer.into_writer();
 
     let (result, n) = writer.terminator(&mut output[nwritten..]);
     if result == csv_core::WriteResult::OutputFull {
@@ -68,22 +67,18 @@ impl serde::ser::Error for Error {
 }
 
 pub struct Serializer<'a> {
-    writer: csv_core::Writer,
+    writer: &'a mut csv_core::Writer,
     output: &'a mut [u8],
     nwritten: usize,
 }
 
-impl<'out> Serializer<'out> {
-    pub fn new(writer: csv_core::Writer, output: &'out mut [u8]) -> Self {
+impl<'a> Serializer<'a> {
+    pub fn new(writer: &'a mut csv_core::Writer, output: &'a mut [u8]) -> Self {
         Self {
             writer,
             output,
             nwritten: 0,
         }
-    }
-
-    pub fn into_writer(self) -> csv_core::Writer {
-        self.writer
     }
 
     pub fn bytes_written(&self) -> usize {
@@ -111,22 +106,22 @@ impl<'out> Serializer<'out> {
     }
 }
 
-impl<'ser, 'out> ser::Serializer for &'ser mut Serializer<'out> {
+impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
     type Ok = ();
 
     type Error = Error;
 
-    type SerializeSeq = Compound<'ser, 'out>;
+    type SerializeSeq = Compound<'a, 'b>;
 
-    type SerializeTuple = Compound<'ser, 'out>;
+    type SerializeTuple = Compound<'a, 'b>;
 
-    type SerializeTupleStruct = Compound<'ser, 'out>;
+    type SerializeTupleStruct = Compound<'a, 'b>;
 
     type SerializeTupleVariant = Unreachable;
 
     type SerializeMap = Unreachable;
 
-    type SerializeStruct = Compound<'ser, 'out>;
+    type SerializeStruct = Compound<'a, 'b>;
 
     type SerializeStructVariant = Unreachable;
 
@@ -300,13 +295,13 @@ impl<'ser, 'out> ser::Serializer for &'ser mut Serializer<'out> {
     }
 }
 
-pub struct Compound<'ser, 'out> {
-    serializer: &'ser mut Serializer<'out>,
+pub struct Compound<'a, 'b> {
+    serializer: &'a mut Serializer<'b>,
     nfields: usize,
 }
 
-impl<'ser, 'out> Compound<'ser, 'out> {
-    fn new(serializer: &'ser mut Serializer<'out>) -> Self {
+impl<'a, 'b> Compound<'a, 'b> {
+    fn new(serializer: &'a mut Serializer<'b>) -> Self {
         Self {
             serializer,
             nfields: 0,

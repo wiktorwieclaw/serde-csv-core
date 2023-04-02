@@ -11,8 +11,9 @@ fn serialization() {
         s: "da,ta",
     };
 
+    let mut writer = csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&data, &mut buf).unwrap();
+    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "21.37,\"da,ta\"\n");
