@@ -1,4 +1,8 @@
 # serde-csv-core
+[![Crates.io](https://img.shields.io/crates/v/serde-csv-core.svg)](https://crates.io/crates/serde-csv-core)
+[![Released API docs](https://docs.rs/serde-csv-core/badge.svg)](https://docs.rs/serde-csv-core)
+[![Continuous integration](https://github.com/wiktorwieclaw/serde-csv-core/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/wiktorwieclaw/serde-csv-core/actions/workflows/ci.yaml)
+
 CSV serialization and deserialization for `no_std` crates.
 
 `serde-csv-core` builds upon [`csv_core`](https://crates.io/crates/csv-core) crate.
