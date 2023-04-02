@@ -74,12 +74,6 @@ where
     }
     nwritten += n;
 
-    let (result, n) = writer.finish(&mut output[nwritten..]);
-    if result == csv_core::WriteResult::OutputFull {
-        return Err(Error::Overflow);
-    }
-    nwritten += n;
-
     Ok(nwritten)
 }
 
