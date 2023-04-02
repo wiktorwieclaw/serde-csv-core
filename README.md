@@ -1,5 +1,5 @@
 # serde-csv-core
-CSV serialization and deserialization for `#[no_std]` crates.
+CSV serialization and deserialization for `no_std` crates.
 
 `serde-csv-core` builds upon [`csv_core`](https://crates.io/crates/csv-core) crate.
 
