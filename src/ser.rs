@@ -1,8 +1,29 @@
+//! Serialize a Rust data structure into CSV data.
+
 #[cfg(feature = "heapless")]
 use heapless::Vec;
 use serde::{ser, Serialize};
 
 #[cfg(feature = "heapless")]
+/// Serializes the given value as a CSV byte vector.
+/// 
+/// # Example
+/// ```
+/// use heapless::Vec;
+/// 
+/// #[derive(serde::Serialize)]
+/// struct Data {
+///     number: f32,
+///     text: &'static str
+/// }
+/// 
+/// let mut writer = csv_core::Writer::new();
+/// let data = Data { number: 7.3214, text: "hello" };
+/// 
+/// let buf: Vec<u8, 32> = serde_csv_core::to_vec(&mut writer, &data).unwrap();
+///
+/// assert_eq!(&buf, b"7.3214,hello\n");
+/// ```
 pub fn to_vec<T, const N: usize>(writer: &mut csv_core::Writer, value: &T) -> Result<Vec<u8, N>>
 where
     T: Serialize + ?Sized,
@@ -17,6 +38,26 @@ where
     Ok(buf)
 }
 
+/// Serializes the given value as a CSV byte slice.
+/// 
+/// On success, it returns the number of bytes written.
+/// 
+/// # Example
+/// ```
+/// #[derive(serde::Serialize)]
+/// struct Data {
+///     number: f32,
+///     text: &'static str
+/// }
+/// 
+/// let mut writer = csv_core::Writer::new();
+/// let data = Data { number: 7.3214, text: "hello" };
+/// let mut buf = [0; 32];
+/// 
+/// let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+///
+/// assert_eq!(&buf[..nwritten], b"7.3214,hello\n");
+/// ```
 pub fn to_slice<T>(writer: &mut csv_core::Writer, value: &T, output: &mut [u8]) -> Result<usize>
 where
     T: Serialize + ?Sized,
@@ -42,11 +83,14 @@ where
     Ok(nwritten)
 }
 
+/// This type represents all possible errors that can occur when serializing CSV data.
 #[derive(Debug)]
 pub enum Error {
+    /// Buffer overflow.
     Overflow,
 }
 
+/// Alias for a `core::result::Result` with the error type `serde_csv_core::ser::Error`.
 pub type Result<T> = core::result::Result<T, Error>;
 
 impl core::fmt::Display for Error {
@@ -66,6 +110,7 @@ impl serde::ser::Error for Error {
     }
 }
 
+/// A structure for serializing Rust values into CSV.
 pub struct Serializer<'a> {
     writer: &'a mut csv_core::Writer,
     output: &'a mut [u8],
@@ -73,6 +118,7 @@ pub struct Serializer<'a> {
 }
 
 impl<'a> Serializer<'a> {
+    /// Creates a new CSV serializer.
     pub fn new(writer: &'a mut csv_core::Writer, output: &'a mut [u8]) -> Self {
         Self {
             writer,
@@ -81,6 +127,7 @@ impl<'a> Serializer<'a> {
         }
     }
 
+    /// Returns the number of bytes written.
     pub fn bytes_written(&self) -> usize {
         self.nwritten
     }
@@ -295,6 +342,7 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
     }
 }
 
+#[doc(hidden)]
 pub struct Compound<'a, 'b> {
     serializer: &'a mut Serializer<'b>,
     nfields: usize,
@@ -388,6 +436,7 @@ impl ser::SerializeStruct for Compound<'_, '_> {
     }
 }
 
+#[doc(hidden)]
 pub struct Unreachable;
 
 impl ser::SerializeTupleVariant for Unreachable {
