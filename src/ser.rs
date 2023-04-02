@@ -7,6 +7,9 @@ use serde::{ser, Serialize};
 #[cfg(feature = "heapless")]
 /// Serializes the given value as a CSV byte vector.
 /// 
+/// Inserts record terminator after the serialized value.
+/// Flattens compound types (e.g. nested structs).
+/// 
 /// # Example
 /// ```
 /// use heapless::Vec;
@@ -40,6 +43,8 @@ where
 
 /// Serializes the given value as a CSV byte slice.
 /// 
+/// Inserts record terminator after the serialized value.
+/// Flattens compound types (e.g. nested structs).
 /// On success, it returns the number of bytes written.
 /// 
 /// # Example
