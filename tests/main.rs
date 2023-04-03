@@ -87,20 +87,20 @@ fn serialize_compound() {
     #[derive(serde::Serialize)]
     struct Struct {
         x: i32,
-        y: i32
+        y: i32,
     }
 
     #[derive(serde::Serialize)]
     struct Data {
         t: (i32, i32),
         a: [i32; 4],
-        s: Struct
+        s: Struct,
     }
-    
+
     let data = Data {
         t: (0, 1),
         a: [2, 3, 4, 5],
-        s: Struct { x: 6, y: 7 }
+        s: Struct { x: 6, y: 7 },
     };
 
     let mut writer = csv_core::Writer::new();

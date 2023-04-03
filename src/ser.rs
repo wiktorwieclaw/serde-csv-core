@@ -6,23 +6,23 @@ use serde::{ser, Serialize};
 
 #[cfg(feature = "heapless")]
 /// Serializes the given value as a CSV byte vector.
-/// 
+///
 /// Inserts record terminator after the serialized value.
 /// Flattens compound types (e.g. nested structs).
-/// 
+///
 /// # Example
 /// ```
 /// use heapless::Vec;
-/// 
+///
 /// #[derive(serde::Serialize)]
 /// struct Data {
 ///     number: f32,
 ///     text: &'static str
 /// }
-/// 
+///
 /// let mut writer = csv_core::Writer::new();
 /// let data = Data { number: 7.3214, text: "hello" };
-/// 
+///
 /// let buf: Vec<u8, 32> = serde_csv_core::to_vec(&mut writer, &data).unwrap();
 ///
 /// assert_eq!(&buf, b"7.3214,hello\n");
@@ -42,11 +42,11 @@ where
 }
 
 /// Serializes the given value as a CSV byte slice.
-/// 
+///
 /// Inserts record terminator after the serialized value.
 /// Flattens compound types (e.g. nested structs).
 /// On success, it returns the number of bytes written.
-/// 
+///
 /// # Example
 /// ```
 /// #[derive(serde::Serialize)]
@@ -54,11 +54,11 @@ where
 ///     number: f32,
 ///     text: &'static str
 /// }
-/// 
+///
 /// let mut writer = csv_core::Writer::new();
 /// let data = Data { number: 7.3214, text: "hello" };
 /// let mut buf = [0; 32];
-/// 
+///
 /// let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
 ///
 /// assert_eq!(&buf[..nwritten], b"7.3214,hello\n");
