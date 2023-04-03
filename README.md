@@ -37,7 +37,7 @@ let mut buf = [0; 128];
 let mut len = 0;
 
 for record in records {
-    len += serde_csv_core::to_slice(&mut writer, &record, &mut buf[len..]).unwrap();
+    len += serde_csv_core::to_slice(&mut writer, &record, &mut buf[len..])?;
 }
 
 assert_eq!(&buf[..len], b"Poland,Cracow,766683\nJapan,Tokyo,13515271\n");
