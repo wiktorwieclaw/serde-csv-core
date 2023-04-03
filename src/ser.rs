@@ -8,24 +8,30 @@ use serde::{ser, Serialize};
 /// Serializes the given value as a CSV byte vector.
 ///
 /// Inserts record terminator after the serialized value.
-/// Flattens compound types (e.g. nested structs).
+/// Flattens compound types (e.g. nested structs, tuples, vectors).
 ///
 /// # Example
 /// ```
-/// use heapless::Vec;
+/// use heapless::{String, Vec};
 ///
 /// #[derive(serde::Serialize)]
-/// struct Data {
-///     number: f32,
-///     text: &'static str
+/// struct Record {
+///     pub country: String<32>,
+///     pub city: String<32>,
+///     pub population: u32
 /// }
 ///
+/// let record = Record {
+///     country: "Poland".into(),
+///     city: "Cracow".into(),
+///     population: 766_683
+/// };
+///
 /// let mut writer = csv_core::Writer::new();
-/// let data = Data { number: 7.3214, text: "hello" };
+/// let buf: Vec<u8, 32> = serde_csv_core::to_vec(&mut writer, &record)?;
 ///
-/// let buf: Vec<u8, 32> = serde_csv_core::to_vec(&mut writer, &data).unwrap();
-///
-/// assert_eq!(&buf, b"7.3214,hello\n");
+/// assert_eq!(&buf, b"Poland,Cracow,766683\n");
+/// # Ok::<(), serde_csv_core::ser::Error>(())
 /// ```
 pub fn to_vec<T, const N: usize>(writer: &mut csv_core::Writer, value: &T) -> Result<Vec<u8, N>>
 where
@@ -44,24 +50,32 @@ where
 /// Serializes the given value as a CSV byte slice.
 ///
 /// Inserts record terminator after the serialized value.
-/// Flattens compound types (e.g. nested structs).
+/// Flattens compound types (e.g. nested structs, tuples, vectors).
 /// On success, it returns the number of bytes written.
 ///
 /// # Example
 /// ```
+/// use heapless::String;
+///
 /// #[derive(serde::Serialize)]
-/// struct Data {
-///     number: f32,
-///     text: &'static str
+/// struct Record {
+///     pub country: String<32>,
+///     pub city: String<32>,
+///     pub population: u32,
 /// }
 ///
+/// let record = Record {
+///     country: "Poland".into(),
+///     city: "Cracow".into(),
+///     population: 766_683,
+/// };
+///
 /// let mut writer = csv_core::Writer::new();
-/// let data = Data { number: 7.3214, text: "hello" };
 /// let mut buf = [0; 32];
+/// let len = serde_csv_core::to_slice(&mut writer, &record, &mut buf)?;
 ///
-/// let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
-///
-/// assert_eq!(&buf[..nwritten], b"7.3214,hello\n");
+/// assert_eq!(&buf[..len], b"Poland,Cracow,766683\n");
+/// # Ok::<(), serde_csv_core::ser::Error>(())
 /// ```
 pub fn to_slice<T>(writer: &mut csv_core::Writer, value: &T, output: &mut [u8]) -> Result<usize>
 where

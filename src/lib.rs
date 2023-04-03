@@ -1,22 +1,42 @@
 //! CSV serialization and deserialization for `no_std` crates.
 //!
-//! `serde-csv-core` builds upon [`csv_core`](https://crates.io/crates/csv-core) crate.
+//! `serde-csv-core` builds upon [`csv-core`](https://crates.io/crates/csv-core) crate.
 //!
 //! # Serialization
+//! [`to_slice`] serializes one record at a time.
 //! ```
+//! use heapless::String;
+//!
 //! #[derive(serde::Serialize)]
-//! struct Data {
-//!     number: f32,
-//!     text: &'static str
+//! struct Record {
+//!     pub country: String<32>,
+//!     pub city: String<32>,
+//!     pub population: u32,
 //! }
 //!
+//! let records = [
+//!     Record {
+//!         country: "Poland".into(),
+//!         city: "Cracow".into(),
+//!         population: 766_683,
+//!     },
+//!     Record {
+//!         country: "Japan".into(),
+//!         city: "Tokyo".into(),
+//!         population: 13_515_271,
+//!     },
+//! ];
+//!
 //! let mut writer = csv_core::Writer::new();
-//! let data = Data { number: 7.3214, text: "hello" };
-//! let mut buf = [0; 32];
+//! let mut buf = [0; 128];
+//! let mut len = 0;
 //!
-//! let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+//! for record in records {
+//!     len += serde_csv_core::to_slice(&mut writer, &record, &mut buf[len..])?;
+//! }
 //!
-//! assert_eq!(&buf[..nwritten], b"7.3214,hello\n");
+//! assert_eq!(&buf[..len], b"Poland,Cracow,766683\nJapan,Tokyo,13515271\n");
+//! # Ok::<(), serde_csv_core::ser::Error>(())
 //! ```
 //!
 //! # Deserialization
