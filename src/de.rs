@@ -6,14 +6,14 @@ pub struct Reader<const N: usize> {
 }
 
 impl<const N: usize> Reader<N> {
-    pub fn new(field_buffer: [u8; N]) -> Self {
-        Self::from_inner(csv_core::Reader::new(), field_buffer)
+    pub fn new() -> Self {
+        Self::from_inner(csv_core::Reader::new())
     }
 
-    pub fn from_inner(inner: csv_core::Reader, field_buffer: [u8; N]) -> Self {
+    pub fn from_inner(inner: csv_core::Reader) -> Self {
         Self {
             inner,
-            field_buffer,
+            field_buffer: [0; N],
         }
     }
 

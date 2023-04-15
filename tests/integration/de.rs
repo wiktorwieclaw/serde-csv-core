@@ -3,7 +3,7 @@ use serde_csv_core::de::{Error, Reader, Result};
 #[test]
 fn bool_true() {
     let input = b"true";
-    let mut reader = Reader::new([0; 4]);
+    let mut reader: Reader<4> = Reader::new();
 
     let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
 
@@ -13,7 +13,7 @@ fn bool_true() {
 #[test]
 fn bool_false() {
     let input = b"false";
-    let mut reader = Reader::new([0; 5]);
+    let mut reader: Reader<5> = Reader::new();
 
     let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
 
@@ -23,7 +23,7 @@ fn bool_false() {
 #[test]
 fn bool_empty() {
     let input = b"";
-    let mut reader = Reader::new([0; 0]);
+    let mut reader: Reader<0> = Reader::new();
 
     let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
 
@@ -33,7 +33,7 @@ fn bool_empty() {
 #[test]
 fn bool_overflow() {
     let input = b"overflow";
-    let mut reader = Reader::new([0; 3]);
+    let mut reader: Reader<3> = Reader::new();
 
     let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
 
@@ -43,7 +43,7 @@ fn bool_overflow() {
 #[test]
 fn i8_positive() {
     let input = b"123";
-    let mut reader = Reader::new([0; 3]);
+    let mut reader: Reader<3> = Reader::new();
 
     let result: Result<i8> = reader.deserialize_from_slice(&input[..]);
 
@@ -53,7 +53,7 @@ fn i8_positive() {
 #[test]
 fn i8_negative() {
     let input = b"-123";
-    let mut reader = Reader::new([0; 4]);
+    let mut reader: Reader<4> = Reader::new();
 
     let result: Result<i8> = reader.deserialize_from_slice(&input[..]);
 
@@ -63,7 +63,7 @@ fn i8_negative() {
 #[test]
 fn i8_invalid() {
     let input = b"256";
-    let mut reader = Reader::new([0; 3]);
+    let mut reader: Reader<3> = Reader::new();
 
     let result: Result<i8> = reader.deserialize_from_slice(&input[..]);
 
@@ -73,7 +73,7 @@ fn i8_invalid() {
 #[test]
 fn unit_valid() {
     let input = b"";
-    let mut reader = Reader::new([0; 0]);
+    let mut reader: Reader<0> = Reader::new();
 
     let result: Result<()> = reader.deserialize_from_slice(&input[..]);
 
@@ -83,7 +83,7 @@ fn unit_valid() {
 #[test]
 fn unit_invalid() {
     let input = b"abcd";
-    let mut reader = Reader::new([0; 0]);
+    let mut reader: Reader<0> = Reader::new();
 
     let result: Result<()> = reader.deserialize_from_slice(&input[..]);
 
@@ -96,7 +96,7 @@ fn struct_0() {
     struct Record;
 
     let input = b"";
-    let mut reader = Reader::new([0; 0]);
+    let mut reader: Reader<0> = Reader::new();
 
     let result: Result<Record> = reader.deserialize_from_slice(&input[..]);
 
@@ -112,7 +112,7 @@ fn struct_2() {
     }
 
     let input = b"0,1";
-    let mut reader = Reader::new([0; 3]);
+    let mut reader: Reader<3> = Reader::new();
 
     let result: Result<Record> = reader.deserialize_from_slice(&input[..]);
 
@@ -135,7 +135,7 @@ fn compound() {
     }
 
     let input = b"0,1,2,3,6,7\n";
-    let mut reader = Reader::new([0; 14]);
+    let mut reader: Reader<14> = Reader::new();
 
     let result: Result<Data> = reader.deserialize_from_slice(&input[..]);
 
