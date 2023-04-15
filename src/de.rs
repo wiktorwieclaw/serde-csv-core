@@ -17,6 +17,10 @@ impl<const N: usize> Reader<N> {
         }
     }
 
+    pub fn into_inner(self) -> csv_core::Reader {
+        self.inner
+    }
+
     pub fn deserialize_from_slice<'de, T>(&mut self, input: &[u8]) -> Result<T>
     where
         T: Deserialize<'de>,

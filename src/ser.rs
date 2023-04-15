@@ -19,6 +19,10 @@ impl Writer {
         Self { inner }
     }
 
+    pub fn into_inner(self) -> csv_core::Writer {
+        self.inner
+    }
+
     /// Serializes the given value as a CSV byte slice.
     ///
     /// Inserts record terminator after the serialized value.
