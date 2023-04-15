@@ -64,8 +64,19 @@ struct Deserializer<'a, const N: usize> {
 }
 
 impl<'a, const N: usize> Deserializer<'a, N> {
-    fn read_record() {
-        todo!()
+    fn read_field(&mut self) -> Result<usize> {
+        let (result, r, w) = self
+            .reader
+            .inner
+            .read_field(&self.input[self.nread..], &mut self.reader.field_buffer);
+        self.nread += r;
+        match result {
+            csv_core::ReadFieldResult::InputEmpty => {}
+            csv_core::ReadFieldResult::OutputFull => return Err(Error::Overflow),
+            csv_core::ReadFieldResult::Field { record_end } => self.record_end = record_end,
+            csv_core::ReadFieldResult::End => {}
+        }
+        Ok(w)
     }
 }
 
@@ -83,18 +94,8 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        let (result, r, w) = self
-            .reader
-            .inner
-            .read_field(&self.input[self.nread..], &mut self.reader.field_buffer);
-        self.nread += r;
-        match result {
-            csv_core::ReadFieldResult::InputEmpty => {}
-            csv_core::ReadFieldResult::OutputFull => return Err(Error::Overflow),
-            csv_core::ReadFieldResult::Field { record_end } => self.record_end = record_end,
-            csv_core::ReadFieldResult::End => {}
-        }
-        match &self.reader.field_buffer[..w] {
+        let nwritten = self.read_field()?;
+        match &self.reader.field_buffer[..nwritten] {
             b"true" => visitor.visit_bool(true),
             b"false" => visitor.visit_bool(false),
             _ => Err(Error::Parse),
@@ -105,19 +106,8 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        let (result, r, w) = self
-            .reader
-            .inner
-            .read_field(&self.input[self.nread..], &mut self.reader.field_buffer);
-        self.nread += r;
-        match result {
-            csv_core::ReadFieldResult::InputEmpty => {}
-            csv_core::ReadFieldResult::OutputFull => return Err(Error::Overflow),
-            csv_core::ReadFieldResult::Field { record_end } => self.record_end = record_end,
-            csv_core::ReadFieldResult::End => {}
-        }
-
-        let value = atoi::atoi(&self.reader.field_buffer[..w]).ok_or(Error::Parse)?;
+        let nwritten = self.read_field()?;
+        let value = atoi::atoi(&self.reader.field_buffer[..nwritten]).ok_or(Error::Parse)?;
         visitor.visit_i8(value)
     }
 
@@ -230,18 +220,8 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        let (result, r, w) = self
-            .reader
-            .inner
-            .read_field(&self.input[self.nread..], &mut self.reader.field_buffer);
-        self.nread += r;
-        match result {
-            csv_core::ReadFieldResult::InputEmpty => {}
-            csv_core::ReadFieldResult::OutputFull => return Err(Error::Overflow),
-            csv_core::ReadFieldResult::Field { record_end } => self.record_end = record_end,
-            csv_core::ReadFieldResult::End => {}
-        }
-        if w > 0 {
+        let nwritten = self.read_field()?;
+        if nwritten > 0 {
             return Err(Error::Parse);
         }
         visitor.visit_unit()
