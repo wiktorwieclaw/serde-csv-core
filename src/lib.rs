@@ -43,6 +43,7 @@
 //! Not yet implemented.
 #![no_std]
 
+pub mod de;
 pub mod ser;
 
 #[doc(inline)]
