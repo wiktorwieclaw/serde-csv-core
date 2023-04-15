@@ -48,6 +48,10 @@ pub mod ser;
 
 #[doc(inline)]
 pub use ser::Writer;
+#[doc(inline)]
+pub use de::Reader;
 
+pub use csv_core;
 #[cfg(feature = "heapless")]
 pub use heapless;
+
