@@ -2,9 +2,9 @@
 fn serialize_unit() {
     let data = ();
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -14,9 +14,9 @@ fn serialize_unit() {
 fn serialize_pair_units() {
     let data = ((), ());
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, ",\n");
@@ -26,9 +26,9 @@ fn serialize_pair_units() {
 fn serialize_none() {
     let data: Option<()> = None;
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -38,9 +38,9 @@ fn serialize_none() {
 fn serialize_some() {
     let data: Option<()> = None;
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -50,9 +50,9 @@ fn serialize_some() {
 fn serialize_empty_slice() {
     let data: &[i32] = &[];
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -62,9 +62,9 @@ fn serialize_empty_slice() {
 fn serialize_slice() {
     let data: &[i32] = &[0, 1, 2, 3];
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "0,1,2,3\n");
@@ -74,9 +74,9 @@ fn serialize_slice() {
 fn serialize_string_with_comma() {
     let data = "a,b,c";
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"a,b,c\"\n");
@@ -103,9 +103,9 @@ fn serialize_compound() {
         s: Struct { x: 6, y: 7 },
     };
 
-    let mut writer = csv_core::Writer::new();
+    let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = serde_csv_core::to_slice(&mut writer, &data, &mut buf).unwrap();
+    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "0,1,2,3,4,5,6,7\n");

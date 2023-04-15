@@ -4,96 +4,116 @@
 use heapless::Vec;
 use serde::{ser, Serialize};
 
-#[cfg(feature = "heapless")]
-/// Serializes the given value as a CSV byte vector.
-///
-/// Inserts record terminator after the serialized value.
-/// Flattens compound types (e.g. nested structs, tuples, vectors).
-///
-/// # Example
-/// ```
-/// use heapless::{String, Vec};
-///
-/// #[derive(serde::Serialize)]
-/// struct Record {
-///     pub country: String<32>,
-///     pub city: String<32>,
-///     pub population: u32
-/// }
-///
-/// let record = Record {
-///     country: "Poland".into(),
-///     city: "Cracow".into(),
-///     population: 766_683
-/// };
-///
-/// let mut writer = csv_core::Writer::new();
-/// let buf: Vec<u8, 32> = serde_csv_core::to_vec(&mut writer, &record)?;
-///
-/// assert_eq!(&buf, b"Poland,Cracow,766683\n");
-/// # Ok::<(), serde_csv_core::ser::Error>(())
-/// ```
-pub fn to_vec<T, const N: usize>(writer: &mut csv_core::Writer, value: &T) -> Result<Vec<u8, N>>
-where
-    T: Serialize + ?Sized,
-{
-    let mut buf: Vec<u8, N> = Vec::new();
-    // SAFETY:
-    // always safe since buf has capacity N
-    unsafe { buf.resize_default(N).unwrap_unchecked() };
-
-    let len = to_slice(writer, value, &mut buf)?;
-    buf.truncate(len);
-    Ok(buf)
+pub struct Writer {
+    inner: csv_core::Writer,
 }
 
-/// Serializes the given value as a CSV byte slice.
-///
-/// Inserts record terminator after the serialized value.
-/// Flattens compound types (e.g. nested structs, tuples, vectors).
-/// On success, it returns the number of bytes written.
-///
-/// # Example
-/// ```
-/// use heapless::String;
-///
-/// #[derive(serde::Serialize)]
-/// struct Record {
-///     pub country: String<32>,
-///     pub city: String<32>,
-///     pub population: u32,
-/// }
-///
-/// let record = Record {
-///     country: "Poland".into(),
-///     city: "Cracow".into(),
-///     population: 766_683,
-/// };
-///
-/// let mut writer = csv_core::Writer::new();
-/// let mut buf = [0; 32];
-/// let len = serde_csv_core::to_slice(&mut writer, &record, &mut buf)?;
-///
-/// assert_eq!(&buf[..len], b"Poland,Cracow,766683\n");
-/// # Ok::<(), serde_csv_core::ser::Error>(())
-/// ```
-pub fn to_slice<T>(writer: &mut csv_core::Writer, value: &T, output: &mut [u8]) -> Result<usize>
-where
-    T: Serialize + ?Sized,
-{
-    let mut nwritten = 0;
-
-    let mut serializer = Serializer::new(writer, output);
-    value.serialize(&mut serializer)?;
-    nwritten += serializer.bytes_written();
-
-    let (result, n) = writer.terminator(&mut output[nwritten..]);
-    if result == csv_core::WriteResult::OutputFull {
-        return Err(Error::Overflow);
+impl Writer {
+    pub fn new() -> Self {
+        Self {
+            inner: csv_core::Writer::new(),
+        }
     }
-    nwritten += n;
 
-    Ok(nwritten)
+    pub fn from_inner(inner: csv_core::Writer) -> Self {
+        Self { inner }
+    }
+
+    /// Serializes the given value as a CSV byte slice.
+    ///
+    /// Inserts record terminator after the serialized value.
+    /// Flattens compound types (e.g. nested structs, tuples, vectors).
+    /// On success, it returns the number of bytes written.
+    ///
+    /// # Example
+    /// ```
+    /// use heapless::String;
+    ///
+    /// #[derive(serde::Serialize)]
+    /// struct Record {
+    ///     pub country: String<32>,
+    ///     pub city: String<32>,
+    ///     pub population: u32,
+    /// }
+    ///
+    /// let record = Record {
+    ///     country: "Poland".into(),
+    ///     city: "Cracow".into(),
+    ///     population: 766_683,
+    /// };
+    ///
+    /// let mut writer = serde_csv_core::Writer::new();
+    /// let mut buf = [0; 32];
+    /// let len = writer.serialize_to_slice(&record, &mut buf)?;
+    ///
+    /// assert_eq!(&buf[..len], b"Poland,Cracow,766683\n");
+    /// # Ok::<(), serde_csv_core::ser::Error>(())
+    /// ```
+    pub fn serialize_to_slice<T>(&mut self, value: &T, output: &mut [u8]) -> Result<usize>
+    where
+        T: Serialize + ?Sized,
+    {
+        let mut nwritten = 0;
+
+        let mut serializer = Serializer::new(&mut self.inner, output);
+        value.serialize(&mut serializer)?;
+        nwritten += serializer.bytes_written();
+
+        let (result, n) = self.inner.terminator(&mut output[nwritten..]);
+        if result == csv_core::WriteResult::OutputFull {
+            return Err(Error::Overflow);
+        }
+        nwritten += n;
+
+        Ok(nwritten)
+    }
+
+    /// Serializes the given value as a CSV byte vector.
+    ///
+    /// Inserts record terminator after the serialized value.
+    /// Flattens compound types (e.g. nested structs, tuples, vectors).
+    ///
+    /// # Example
+    /// ```
+    /// use heapless::{String, Vec};
+    ///
+    /// #[derive(serde::Serialize)]
+    /// struct Record {
+    ///     pub country: String<32>,
+    ///     pub city: String<32>,
+    ///     pub population: u32
+    /// }
+    ///
+    /// let record = Record {
+    ///     country: "Poland".into(),
+    ///     city: "Cracow".into(),
+    ///     population: 766_683
+    /// };
+    ///
+    /// let mut writer = serde_csv_core::Writer::new();
+    /// let buf: Vec<u8, 32> = writer.serialize_to_vec(&record)?;
+    ///
+    /// assert_eq!(&buf, b"Poland,Cracow,766683\n");
+    /// # Ok::<(), serde_csv_core::ser::Error>(())
+    /// ```
+    /// Serializes the given value as a CSV byte vector.
+    ///
+    /// Inserts record terminator after the serialized value.
+    /// Flattens compound types (e.g. nested structs, tuples, vectors).
+    #[cfg(feature = "heapless")]
+    pub fn serialize_to_vec<T, const N: usize>(&mut self, value: &T) -> Result<Vec<u8, N>>
+    where
+        T: Serialize + ?Sized,
+    {
+        let mut buf: Vec<u8, N> = Vec::new();
+        // SAFETY:
+        // always safe since buf has capacity N
+        unsafe { buf.resize_default(N).unwrap_unchecked() };
+
+        let len = self.serialize_to_slice(value, &mut buf)?;
+        buf.truncate(len);
+        Ok(buf)
+    }
 }
 
 /// This type represents all possible errors that can occur when serializing CSV data.

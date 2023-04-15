@@ -8,7 +8,7 @@ CSV serialization and deserialization for `no_std` crates.
 `serde-csv-core` builds upon [`csv-core`](https://crates.io/crates/csv-core) crate.
 
 ## Serialization
-`to_slice` serializes one record at a time.
+`Writer::serialize_to_slice` serializes one record at a time.
 ```rust
 use heapless::String;
 
@@ -32,12 +32,12 @@ let records = [
     },
 ];
 
-let mut writer = csv_core::Writer::new();
+let mut writer = serde_csv_core::Writer::new();
 let mut buf = [0; 128];
 let mut len = 0;
 
 for record in records {
-    len += serde_csv_core::to_slice(&mut writer, &record, &mut buf[len..])?;
+    len += writer.serialize_to_slice(&record, &mut buf[len..])?;
 }
 
 assert_eq!(&buf[..len], b"Poland,Cracow,766683\nJapan,Tokyo,13515271\n");
