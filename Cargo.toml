@@ -1,12 +1,12 @@
 [package]
 name = "serde-csv-core"
 edition = "2021"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Wiktor Więcław <lonevixu@gmail.com>"]
 categories = ["embedded", "encoding", "no-std"]
 description = "CSV serialization for no_std crates"
 documentation = "https://docs.rs/serde-csv-core"
-keywords = ["csv", "csv-core", "serde", "serialization"]
+keywords = ["csv", "csv-core", "embedded", "serde", "serialization"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/wiktorwieclaw/serde-csv-core"
