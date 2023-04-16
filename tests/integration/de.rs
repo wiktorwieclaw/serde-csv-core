@@ -104,6 +104,26 @@ fn transient_str() {
 }
 
 #[test]
+fn some() {
+    let input = b"123";
+    let mut reader: Reader<3> = Reader::new();
+
+    let result: Result<Option<i32>> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Ok(Some(123)))
+}
+
+#[test]
+fn none() {
+    let input = b"";
+    let mut reader: Reader<0> = Reader::new();
+
+    let result: Result<Option<i32>> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Ok(None))
+}
+
+#[test]
 fn unit_valid() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
