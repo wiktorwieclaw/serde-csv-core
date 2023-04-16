@@ -26,12 +26,7 @@ impl<const N: usize> Reader<N> {
     where
         T: Deserialize<'de>,
     {
-        let mut deserializer = Deserializer {
-            reader: self,
-            input,
-            nread: 0,
-            record_end: false,
-        };
+        let mut deserializer = Deserializer::new(self, input);
         T::deserialize(&mut deserializer)
     }
 }
@@ -40,6 +35,7 @@ impl<const N: usize> Reader<N> {
 pub enum Error {
     Overflow,
     Parse,
+    Custom,
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -57,7 +53,7 @@ impl serde::de::Error for Error {
     where
         T: core::fmt::Display,
     {
-        unimplemented!("custom is not supported");
+        Self::Custom
     }
 }
 
@@ -69,6 +65,15 @@ struct Deserializer<'a, const N: usize> {
 }
 
 impl<'a, const N: usize> Deserializer<'a, N> {
+    pub fn new(reader: &'a mut Reader<N>, input: &'a [u8]) -> Self {
+        Self {
+            reader,
+            input,
+            nread: 0,
+            record_end: false,
+        }
+    }
+
     fn read_field(&mut self) -> Result<usize> {
         let (result, r, w) = self
             .reader
@@ -92,6 +97,11 @@ impl<'a, const N: usize> Deserializer<'a, N> {
     fn read_float<T: FromLexical>(&mut self) -> Result<T> {
         let nwritten = self.read_field()?;
         T::from_lexical(&self.reader.field_buffer[..nwritten]).map_err(|_| Error::Parse)
+    }
+
+    fn read_str(&mut self) -> Result<&str> {
+        let nwritten = self.read_field()?;
+        core::str::from_utf8(&self.reader.field_buffer[..nwritten]).map_err(|_| Error::Parse)
     }
 }
 
@@ -191,14 +201,20 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        let str = self.read_str()?;
+        let mut iter = str.chars();
+        let c = iter.next().ok_or(Error::Parse)?;
+        if iter.next().is_some() {
+            return Err(Error::Parse)
+        }
+        visitor.visit_char(c)
     }
 
     fn deserialize_str<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_str(self.read_str()?)
     }
 
     fn deserialize_string<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>

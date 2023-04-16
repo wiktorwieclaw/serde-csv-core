@@ -71,6 +71,39 @@ fn i8_invalid() {
 }
 
 #[test]
+fn char_valid() {
+    let input = b"\xc4\x85";
+    let mut reader: Reader<2> = Reader::new();
+
+    let result: Result<char> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Ok('ą'))
+}
+
+#[test]
+fn char_invalid() {
+    let input = b"\xc4\x85\xc4\x85";
+    let mut reader: Reader<4> = Reader::new();
+
+    let result: Result<char> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Err(Error::Parse))
+}
+
+// Ipv4Addr's implementation of serde::Deserialize calls visit_str
+#[test]
+fn transient_str() {
+    use std::net::Ipv4Addr;
+
+    let input = b"192.168.0.1";
+    let mut reader: Reader<11> = Reader::new();
+
+    let result: Result<std::net::Ipv4Addr> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Ok(Ipv4Addr::new(192, 168, 0, 1)))
+}
+
+#[test]
 fn unit_valid() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
