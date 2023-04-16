@@ -121,7 +121,7 @@ impl Writer {
 }
 
 /// This type represents all possible errors that can occur when serializing CSV data.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     /// Buffer overflow.
     Overflow,
