@@ -144,6 +144,16 @@ fn unit_invalid() {
 }
 
 #[test]
+fn empty_records() {
+    let input = b",,,";
+    let mut reader: Reader<1> = Reader::new();
+
+    let result = reader.deserialize_from_slice::<(i32, i32)>(&input[..]);
+
+    assert_eq!(result, Err(Error::InvalidInt))
+}
+
+#[test]
 fn struct_0() {
     #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
     struct Record;
