@@ -31,6 +31,35 @@ impl<const N: usize> Reader<N> {
         self.inner
     }
 
+    /// Deserializes a given CSV byte slice into a value of type `T`.
+    /// 
+    /// The second element of the resulting tuple is a number of bytes read.
+    /// 
+    /// # Example
+    /// ```
+    /// use heapless::String;
+    /// use serde::Deserialize;
+    ///
+    /// #[derive(Debug, PartialEq, Eq, Deserialize)]
+    /// struct Record {
+    ///     pub country: String<32>,
+    ///     pub city: String<32>,
+    ///     pub population: u32,
+    /// }
+    ///
+    /// let csv = b"Poland,Cracow,766683\n";
+    ///
+    /// let mut reader = serde_csv_core::Reader::<32>::new();
+    /// let (record, nread)  = reader.deserialize_from_slice::<Record>(&csv[..])?;
+    ///
+    /// assert_eq!(record, Record {
+    ///     country: "Poland".into(),
+    ///     city: "Cracow".into(),
+    ///     population: 766_683,
+    /// });
+    /// assert_eq!(nread, 21);
+    /// # Ok::<(), serde_csv_core::de::Error>(())
+    /// ```
     pub fn deserialize_from_slice<'de, T>(&mut self, input: &[u8]) -> Result<(T, usize)>
     where
         T: Deserialize<'de>,
