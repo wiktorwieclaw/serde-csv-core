@@ -125,14 +125,25 @@ impl Writer {
 pub enum Error {
     /// Buffer overflow.
     Overflow,
+    /// Custom error.
+    Custom,
 }
 
 /// Alias for a `core::result::Result` with the error type `serde_csv_core::ser::Error`.
 pub type Result<T> = core::result::Result<T, Error>;
 
+macro_rules! impl_format {
+    ($self:ident, $write:ident, $f:ident) => {
+        match $self {
+            Self::Overflow => $write!($f, "Buffer overflow"),
+            Self::Custom => $write!($f, "Custom error"),
+        }
+    };
+}
+
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Buffer overflow")
+        impl_format!(self, write, f)
     }
 }
 
@@ -149,11 +160,9 @@ impl serde::ser::Error for Error {
 
 #[cfg(feature = "defmt")]
 impl defmt::Format for Error {
-    fn format(&self, fmt: defmt::Formatter) {
+    fn format(&self, f: defmt::Formatter) {
         use defmt::write;
-        match self {
-            Self::Overflow => write!(fmt, "Buffer overflow"),
-        }
+        impl_format!(self, write, f)
     }
 }
 

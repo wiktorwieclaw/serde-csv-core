@@ -47,12 +47,23 @@ pub enum Error {
     Custom,
 }
 
+macro_rules! impl_format {
+    ($self:ident, $write:ident, $f:ident) => {
+        match $self {
+            Self::Overflow => $write!($f, "Buffer overflow"),
+            Self::Parse => $write!($f, "Failed to parse field"),
+            Self::Unexpected => $write!($f, "Unexpected error"),
+            Self::Custom => $write!($f, "Custom error"),
+        }
+    };
+}
+
 /// Alias for a `core::result::Result` with the error type `serde_csv_core::de::Error`.
 pub type Result<T> = core::result::Result<T, Error>;
 
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Deserialization error")
+        impl_format!(self, write, f)
     }
 }
 
@@ -69,14 +80,9 @@ impl serde::de::Error for Error {
 
 #[cfg(feature = "defmt")]
 impl defmt::Format for Error {
-    fn format(&self, fmt: defmt::Formatter) {
+    fn format(&self, f: defmt::Formatter) {
         use defmt::write;
-        match self {
-            Self::Overflow => write!(fmt, "Buffer overflow"),
-            Self::Parse => write!(fmt, "Failed to parse field"),
-            Self::Unexpected => write!(fmt, "Unexpected error"),
-            Self::Custom => write!(fmt, "Custom error"),
-        }
+        impl_format!(self, write, f)
     }
 }
 
