@@ -125,8 +125,6 @@ impl Writer {
 pub enum Error {
     /// Buffer overflow.
     Overflow,
-    /// Custom error.
-    Custom,
 }
 
 /// Alias for a `core::result::Result` with the error type `serde_csv_core::ser::Error`.
@@ -136,7 +134,6 @@ macro_rules! impl_format {
     ($self:ident, $write:ident, $f:ident) => {
         match $self {
             Self::Overflow => $write!($f, "Buffer overflow"),
-            Self::Custom => $write!($f, "Custom error"),
         }
     };
 }

@@ -41,19 +41,40 @@ impl<const N: usize> Reader<N> {
 /// This type represents all possible errors that can occur when deserializing CSV data.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
+    /// Buffer overflow.
     Overflow,
-    Parse,
-    Unexpected,
+    /// Expected an empty field.
+    ExpectedEmpty,
+    /// Invalid boolean value. Expected either `true` or `false`.
+    InvalidBool,
+    /// Invalid integer.
+    InvalidInt,
+    /// Invalid floating-point number.
+    InvalidFloat,
+    /// Invalid UTF-8 encoded character.
+    InvalidUtf8Char,
+    /// Invalid UTF-8 encoded string.
+    InvalidUtf8String,
+    /// Error with a custom message had to be discard.
     Custom,
 }
 
 macro_rules! impl_format {
     ($self:ident, $write:ident, $f:ident) => {
         match $self {
-            Self::Overflow => $write!($f, "Buffer overflow"),
-            Self::Parse => $write!($f, "Failed to parse field"),
-            Self::Unexpected => $write!($f, "Unexpected error"),
-            Self::Custom => $write!($f, "Custom error"),
+            Self::Overflow => $write!($f, "Buffer overflow."),
+            Self::ExpectedEmpty => $write!($f, "Expected an empty field."),
+            Self::InvalidBool => {
+                $write!(
+                    $f,
+                    "Invalid boolean value. Expected either `true` or `false`."
+                )
+            }
+            Self::InvalidInt => $write!($f, "Invalid integer."),
+            Self::InvalidFloat => $write!($f, "Invalid floating-point number."),
+            Self::InvalidUtf8Char => $write!($f, "Invalid UTF-8 encoded character."),
+            Self::InvalidUtf8String => $write!($f, "Invalid UTF-8 encoded string."),
+            Self::Custom => $write!($f, "CSV does not match deserializer's expected format."),
         }
     };
 }
@@ -145,15 +166,15 @@ impl<'a, const N: usize> Deserializer<'a, N> {
     }
 
     fn read_int<T: atoi::FromRadix10SignedChecked>(&mut self) -> Result<T> {
-        atoi::atoi(self.read_bytes()?).ok_or(Error::Parse)
+        atoi::atoi(self.read_bytes()?).ok_or(Error::InvalidInt)
     }
 
     fn read_float<T: FromLexical>(&mut self) -> Result<T> {
-        T::from_lexical(self.read_bytes()?).map_err(|_| Error::Parse)
+        T::from_lexical(self.read_bytes()?).map_err(|_| Error::InvalidFloat)
     }
 
     fn read_str(&mut self) -> Result<&str> {
-        core::str::from_utf8(self.read_bytes()?).map_err(|_| Error::Parse)
+        core::str::from_utf8(self.read_bytes()?).map_err(|_| Error::InvalidUtf8String)
     }
 }
 
@@ -174,7 +195,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
         match self.read_bytes()? {
             b"true" => visitor.visit_bool(true),
             b"false" => visitor.visit_bool(false),
-            _ => Err(Error::Parse),
+            _ => Err(Error::InvalidBool),
         }
     }
 
@@ -254,9 +275,9 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     {
         let str = self.read_str()?;
         let mut iter = str.chars();
-        let c = iter.next().ok_or(Error::Parse)?;
+        let c = iter.next().ok_or(Error::InvalidUtf8Char)?;
         if iter.next().is_some() {
-            return Err(Error::Parse);
+            return Err(Error::InvalidUtf8Char);
         }
         visitor.visit_char(c)
     }
@@ -307,7 +328,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     {
         let bytes = self.read_bytes()?;
         if !bytes.is_empty() {
-            return Err(Error::Parse);
+            return Err(Error::ExpectedEmpty);
         }
         visitor.visit_unit()
     }
@@ -407,7 +428,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Dese
     }
 
     fn newtype_variant_seed<U: DeserializeSeed<'de>>(self, _seed: U) -> Result<U::Value> {
-        Err(Error::Unexpected)
+        unimplemented!("`VariantAccess::newtype_variant_seed` is not implemented");
     }
 
     fn tuple_variant<V: serde::de::Visitor<'de>>(
@@ -415,7 +436,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Dese
         _len: usize,
         _visitor: V,
     ) -> Result<V::Value> {
-        Err(Error::Unexpected)
+        unimplemented!("`VariantAccess::tuple_variant` is not implemented");
     }
 
     fn struct_variant<V: serde::de::Visitor<'de>>(
@@ -423,7 +444,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Dese
         _fields: &'static [&'static str],
         _visitor: V,
     ) -> Result<V::Value> {
-        Err(Error::Unexpected)
+        unimplemented!("`VariantAccess::struct_variant` is not implemented");
     }
 }
 

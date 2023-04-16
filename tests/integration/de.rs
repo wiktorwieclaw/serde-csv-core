@@ -27,7 +27,7 @@ fn bool_empty() {
 
     let result = reader.deserialize_from_slice::<bool>(&input[..]);
 
-    assert_eq!(result, Err(Error::Parse))
+    assert_eq!(result, Err(Error::InvalidBool))
 }
 
 #[test]
@@ -67,7 +67,7 @@ fn i8_invalid() {
 
     let result = reader.deserialize_from_slice::<i8>(&input[..]);
 
-    assert_eq!(result, Err(Error::Parse))
+    assert_eq!(result, Err(Error::InvalidInt))
 }
 
 #[test]
@@ -87,7 +87,7 @@ fn char_invalid() {
 
     let result = reader.deserialize_from_slice::<char>(&input[..]);
 
-    assert_eq!(result, Err(Error::Parse))
+    assert_eq!(result, Err(Error::InvalidUtf8Char))
 }
 
 // Ipv4Addr's implementation of serde::Deserialize calls visit_str
@@ -140,7 +140,7 @@ fn unit_invalid() {
 
     let result = reader.deserialize_from_slice::<()>(&input[..]);
 
-    assert_eq!(result, Err(Error::Parse))
+    assert_eq!(result, Err(Error::ExpectedEmpty))
 }
 
 #[test]
