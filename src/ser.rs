@@ -4,6 +4,7 @@
 use heapless::Vec;
 use serde::{ser, Serialize};
 
+/// Wrapper for [`csv_core::Writer`] that provides methods for serialization.
 pub struct Writer {
     inner: csv_core::Writer,
 }

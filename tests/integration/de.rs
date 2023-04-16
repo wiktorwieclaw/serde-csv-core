@@ -1,13 +1,13 @@
-use serde_csv_core::de::{Error, Reader, Result};
+use serde_csv_core::de::{Error, Reader};
 
 #[test]
 fn bool_true() {
     let input = b"true";
     let mut reader: Reader<4> = Reader::new();
 
-    let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<bool>(&input[..]);
 
-    assert_eq!(result, Ok(true))
+    assert_eq!(result, Ok((true, 4)))
 }
 
 #[test]
@@ -15,9 +15,9 @@ fn bool_false() {
     let input = b"false";
     let mut reader: Reader<5> = Reader::new();
 
-    let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<bool>(&input[..]);
 
-    assert_eq!(result, Ok(false))
+    assert_eq!(result, Ok((false, 5)))
 }
 
 #[test]
@@ -25,7 +25,7 @@ fn bool_empty() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<bool>(&input[..]);
 
     assert_eq!(result, Err(Error::Parse))
 }
@@ -35,7 +35,7 @@ fn bool_overflow() {
     let input = b"overflow";
     let mut reader: Reader<3> = Reader::new();
 
-    let result: Result<bool> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<bool>(&input[..]);
 
     assert_eq!(result, Err(Error::Overflow))
 }
@@ -45,9 +45,9 @@ fn i8_positive() {
     let input = b"123";
     let mut reader: Reader<3> = Reader::new();
 
-    let result: Result<i8> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<i8>(&input[..]);
 
-    assert_eq!(result, Ok(123))
+    assert_eq!(result, Ok((123, 3)))
 }
 
 #[test]
@@ -55,9 +55,9 @@ fn i8_negative() {
     let input = b"-123";
     let mut reader: Reader<4> = Reader::new();
 
-    let result: Result<i8> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<i8>(&input[..]);
 
-    assert_eq!(result, Ok(-123))
+    assert_eq!(result, Ok((-123, 4)))
 }
 
 #[test]
@@ -65,7 +65,7 @@ fn i8_invalid() {
     let input = b"256";
     let mut reader: Reader<3> = Reader::new();
 
-    let result: Result<i8> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<i8>(&input[..]);
 
     assert_eq!(result, Err(Error::Parse))
 }
@@ -75,9 +75,9 @@ fn char_valid() {
     let input = b"\xc4\x85";
     let mut reader: Reader<2> = Reader::new();
 
-    let result: Result<char> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<char>(&input[..]);
 
-    assert_eq!(result, Ok('ą'))
+    assert_eq!(result, Ok(('ą', 2)))
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn char_invalid() {
     let input = b"\xc4\x85\xc4\x85";
     let mut reader: Reader<4> = Reader::new();
 
-    let result: Result<char> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<char>(&input[..]);
 
     assert_eq!(result, Err(Error::Parse))
 }
@@ -98,9 +98,9 @@ fn visit_str() {
     let input = b"192.168.0.1";
     let mut reader: Reader<11> = Reader::new();
 
-    let result: Result<std::net::Ipv4Addr> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<std::net::Ipv4Addr>(&input[..]);
 
-    assert_eq!(result, Ok(Ipv4Addr::new(192, 168, 0, 1)))
+    assert_eq!(result, Ok((Ipv4Addr::new(192, 168, 0, 1), 11)))
 }
 
 #[test]
@@ -108,9 +108,9 @@ fn some() {
     let input = b"123";
     let mut reader: Reader<3> = Reader::new();
 
-    let result: Result<Option<i32>> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<Option<i32>>(&input[..]);
 
-    assert_eq!(result, Ok(Some(123)))
+    assert_eq!(result, Ok((Some(123), 3)))
 }
 
 #[test]
@@ -118,9 +118,9 @@ fn none() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result: Result<Option<i32>> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<Option<i32>>(&input[..]);
 
-    assert_eq!(result, Ok(None))
+    assert_eq!(result, Ok((None, 0)))
 }
 
 #[test]
@@ -128,9 +128,9 @@ fn unit_valid() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result: Result<()> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<()>(&input[..]);
 
-    assert_eq!(result, Ok(()))
+    assert_eq!(result, Ok(((), 0)))
 }
 
 #[test]
@@ -138,7 +138,7 @@ fn unit_invalid() {
     let input = b"abcd";
     let mut reader: Reader<4> = Reader::new();
 
-    let result: Result<()> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<()>(&input[..]);
 
     assert_eq!(result, Err(Error::Parse))
 }
@@ -151,9 +151,9 @@ fn struct_0() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result: Result<Record> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<Record>(&input[..]);
 
-    assert_eq!(result, Ok(Record))
+    assert_eq!(result, Ok((Record, 0)))
 }
 
 #[test]
@@ -167,9 +167,9 @@ fn struct_2() {
     let input = b"0,1";
     let mut reader: Reader<2> = Reader::new();
 
-    let result: Result<Record> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<Record>(&input[..]);
 
-    assert_eq!(result, Ok(Record { x: 0, y: 1 }))
+    assert_eq!(result, Ok((Record { x: 0, y: 1 }, 3)))
 }
 
 #[test]
@@ -184,9 +184,9 @@ fn c_enum() {
     let input = b"B";
     let mut reader: Reader<1> = Reader::new();
 
-    let result: Result<Record> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<Record>(&input[..]);
 
-    assert_eq!(result, Ok(Record::B))
+    assert_eq!(result, Ok((Record::B, 1)))
 }
 
 #[test]
@@ -207,15 +207,18 @@ fn compound() {
     let input = b"0,1,2,3,4,5,6,7";
     let mut reader: Reader<2> = Reader::new();
 
-    let result: Result<Data> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<Data>(&input[..]);
 
     assert_eq!(
         result,
-        Ok(Data {
-            t: (0, 1),
-            a: [2, 3, 4, 5],
-            s: Struct { x: 6, y: 7 },
-        })
+        Ok((
+            Data {
+                t: (0, 1),
+                a: [2, 3, 4, 5],
+                s: Struct { x: 6, y: 7 },
+            },
+            15
+        ))
     );
 }
 
@@ -237,7 +240,7 @@ fn compound_missing_fields() {
     let input = b"0,1,2,3\n4,5,6,7\n";
     let mut reader: Reader<2> = Reader::new();
 
-    let result: Result<Data> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<Data>(&input[..]);
 
     assert_eq!(result, Err(Error::Custom));
 }
@@ -247,7 +250,7 @@ fn array_too_many_fields() {
     let input = b"0,1,2,3";
     let mut reader: Reader<2> = Reader::new();
 
-    let result: Result<[u8; 3]> = reader.deserialize_from_slice(&input[..]);
+    let result = reader.deserialize_from_slice::<[u8; 3]>(&input[..]);
 
-    assert_eq!(result, Ok([0, 1, 2]));
+    assert_eq!(result, Ok(([0, 1, 2], 6)));
 }

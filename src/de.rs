@@ -1,6 +1,9 @@
+//! Deserialize CSV data into a Rust data structure.
+
 use lexical_parse_float::FromLexical;
 use serde::{de::DeserializeSeed, Deserialize};
 
+/// Wrapper for [`csv_core::Reader`] that provides methods for deserialization.
 pub struct Reader<const N: usize> {
     inner: csv_core::Reader,
     field_buffer: [u8; N],
@@ -23,13 +26,13 @@ impl<const N: usize> Reader<N> {
         self.inner
     }
 
-    pub fn deserialize_from_slice<'de, T>(&mut self, input: &[u8]) -> Result<T>
+    pub fn deserialize_from_slice<'de, T>(&mut self, input: &[u8]) -> Result<(T, usize)>
     where
         T: Deserialize<'de>,
     {
         let mut deserializer = Deserializer::new(self, input);
-        let value = T::deserialize(&mut deserializer);
-        value
+        let value = T::deserialize(&mut deserializer)?;
+        Ok((value, deserializer.bytes_read()))
     }
 }
 
@@ -77,6 +80,10 @@ impl<'a, const N: usize> Deserializer<'a, N> {
             record_end: false,
             peeked: None,
         }
+    }
+
+    pub fn bytes_read(&self) -> usize {
+        self.nread
     }
 
     fn read_bytes_impl(&mut self) -> Result<usize> {
