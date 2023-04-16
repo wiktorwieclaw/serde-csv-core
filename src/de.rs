@@ -4,6 +4,8 @@ use lexical_parse_float::FromLexical;
 use serde::{de::DeserializeSeed, Deserialize};
 
 /// Wrapper for [`csv_core::Reader`] that provides methods for deserialization.
+/// 
+/// `N` is a capacity of an internal buffer that's used to temporarily store unescaped fields.
 pub struct Reader<const N: usize> {
     inner: csv_core::Reader,
     field_buffer: [u8; N],
@@ -36,6 +38,7 @@ impl<const N: usize> Reader<N> {
     }
 }
 
+/// This type represents all possible errors that can occur when deserializing CSV data.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     Overflow,
@@ -44,6 +47,7 @@ pub enum Error {
     Custom,
 }
 
+/// Alias for a `core::result::Result` with the error type `serde_csv_core::de::Error`.
 pub type Result<T> = core::result::Result<T, Error>;
 
 impl core::fmt::Display for Error {
