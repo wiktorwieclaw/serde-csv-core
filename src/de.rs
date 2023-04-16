@@ -74,7 +74,7 @@ impl<'a, const N: usize> Deserializer<'a, N> {
         }
     }
 
-    fn read_field(&mut self) -> Result<usize> {
+    fn read_bytes(&mut self) -> Result<&[u8]> {
         let (result, r, w) = self
             .reader
             .inner
@@ -86,22 +86,19 @@ impl<'a, const N: usize> Deserializer<'a, N> {
             csv_core::ReadFieldResult::Field { record_end } => self.record_end = record_end,
             csv_core::ReadFieldResult::End => {}
         }
-        Ok(w)
+        Ok(&mut self.reader.field_buffer[..w])
     }
 
     fn read_int<T: atoi::FromRadix10SignedChecked>(&mut self) -> Result<T> {
-        let nwritten = self.read_field()?;
-        atoi::atoi(&self.reader.field_buffer[..nwritten]).ok_or(Error::Parse)
+        atoi::atoi(self.read_bytes()?).ok_or(Error::Parse)
     }
 
     fn read_float<T: FromLexical>(&mut self) -> Result<T> {
-        let nwritten = self.read_field()?;
-        T::from_lexical(&self.reader.field_buffer[..nwritten]).map_err(|_| Error::Parse)
+        T::from_lexical(self.read_bytes()?).map_err(|_| Error::Parse)
     }
 
     fn read_str(&mut self) -> Result<&str> {
-        let nwritten = self.read_field()?;
-        core::str::from_utf8(&self.reader.field_buffer[..nwritten]).map_err(|_| Error::Parse)
+        core::str::from_utf8(self.read_bytes()?).map_err(|_| Error::Parse)
     }
 }
 
@@ -112,15 +109,14 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        unimplemented!("deserialize_any is not supported");
+        unimplemented!("`Deserializer::deserialize_any` is not supported");
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value>
     where
         V: serde::de::Visitor<'de>,
     {
-        let nwritten = self.read_field()?;
-        match &self.reader.field_buffer[..nwritten] {
+        match self.read_bytes()? {
             b"true" => visitor.visit_bool(true),
             b"false" => visitor.visit_bool(false),
             _ => Err(Error::Parse),
@@ -131,70 +127,70 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_i8(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_i8(v))
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_i16(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_i16(v))
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_i32(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_i32(v))
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_i64(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_i64(v))
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_u8(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_u8(v))
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_u16(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_u16(v))
     }
 
     fn deserialize_u32<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_u32(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_u32(v))
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_u64(self.read_int()?)
+        self.read_int().and_then(|v| visitor.visit_u64(v))
     }
 
     fn deserialize_f32<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_f32(self.read_float()?)
+        self.read_float().and_then(|v| visitor.visit_f32(v))
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_f64(self.read_float()?)
+        self.read_float().and_then(|v| visitor.visit_f64(v))
     }
 
     fn deserialize_char<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
@@ -221,21 +217,21 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        unimplemented!("`Deserializer::deserialize_any` is not supported");
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        self.read_bytes().and_then(|v| visitor.visit_bytes(v))
     }
 
     fn deserialize_byte_buf<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        unimplemented!("`Deserializer::deserialize_buf` is not supported");
     }
 
     fn deserialize_option<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
@@ -249,8 +245,8 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        let nwritten = self.read_field()?;
-        if nwritten > 0 {
+        let bytes = self.read_bytes()?;
+        if bytes.len() > 0 {
             return Err(Error::Parse);
         }
         visitor.visit_unit()
