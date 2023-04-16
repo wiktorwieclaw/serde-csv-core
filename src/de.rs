@@ -201,7 +201,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
         let mut iter = str.chars();
         let c = iter.next().ok_or(Error::Parse)?;
         if iter.next().is_some() {
-            return Err(Error::Parse)
+            return Err(Error::Parse);
         }
         visitor.visit_char(c)
     }

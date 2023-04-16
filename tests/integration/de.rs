@@ -116,7 +116,7 @@ fn unit_valid() {
 #[test]
 fn unit_invalid() {
     let input = b"abcd";
-    let mut reader: Reader<0> = Reader::new();
+    let mut reader: Reader<4> = Reader::new();
 
     let result: Result<()> = reader.deserialize_from_slice(&input[..]);
 
