@@ -147,6 +147,16 @@ impl serde::ser::Error for Error {
     }
 }
 
+#[cfg(feature = "defmt")]
+impl defmt::Format for Error {
+    fn format(&self, fmt: defmt::Formatter) {
+        use defmt::write;
+        match self {
+            Self::Overflow => write!(fmt, "Buffer overflow"),
+        }
+    }
+}
+
 /// A structure for serializing Rust values into CSV.
 pub struct Serializer<'a> {
     writer: &'a mut csv_core::Writer,

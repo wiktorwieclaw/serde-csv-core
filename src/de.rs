@@ -4,7 +4,7 @@ use lexical_parse_float::FromLexical;
 use serde::{de::DeserializeSeed, Deserialize};
 
 /// Wrapper for [`csv_core::Reader`] that provides methods for deserialization.
-/// 
+///
 /// `N` is a capacity of an internal buffer that's used to temporarily store unescaped fields.
 pub struct Reader<const N: usize> {
     inner: csv_core::Reader,
@@ -64,6 +64,19 @@ impl serde::de::Error for Error {
         T: core::fmt::Display,
     {
         Self::Custom
+    }
+}
+
+#[cfg(feature = "defmt")]
+impl defmt::Format for Error {
+    fn format(&self, fmt: defmt::Formatter) {
+        use defmt::write;
+        match self {
+            Self::Overflow => write!(fmt, "Buffer overflow"),
+            Self::Parse => write!(fmt, "Failed to parse field"),
+            Self::Unexpected => write!(fmt, "Unexpected error"),
+            Self::Custom => write!(fmt, "Custom error"),
+        }
     }
 }
 
