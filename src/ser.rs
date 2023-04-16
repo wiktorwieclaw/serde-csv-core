@@ -9,10 +9,9 @@ pub struct Writer {
 }
 
 impl Writer {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        Self {
-            inner: csv_core::Writer::new(),
-        }
+        Self::from_inner(csv_core::Writer::new())
     }
 
     pub fn from_inner(inner: csv_core::Writer) -> Self {

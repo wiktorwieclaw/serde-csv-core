@@ -92,7 +92,7 @@ fn char_invalid() {
 
 // Ipv4Addr's implementation of serde::Deserialize calls visit_str
 #[test]
-fn transient_str() {
+fn visit_str() {
     use std::net::Ipv4Addr;
 
     let input = b"192.168.0.1";
@@ -165,7 +165,7 @@ fn struct_2() {
     }
 
     let input = b"0,1";
-    let mut reader: Reader<3> = Reader::new();
+    let mut reader: Reader<2> = Reader::new();
 
     let result: Result<Record> = reader.deserialize_from_slice(&input[..]);
 
@@ -173,31 +173,81 @@ fn struct_2() {
 }
 
 #[test]
+fn c_enum() {
+    #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+    enum Record {
+        A,
+        B,
+        C,
+    }
+
+    let input = b"B";
+    let mut reader: Reader<1> = Reader::new();
+
+    let result: Result<Record> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Ok(Record::B))
+}
+
+#[test]
 fn compound() {
     #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
     struct Struct {
-        x: i8,
-        y: i8,
+        x: i32,
+        y: i32,
     }
 
     #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
     struct Data {
-        t: Struct,
-        a: Struct,
+        t: (i32, i32),
+        a: [i32; 4],
         s: Struct,
     }
 
-    let input = b"0,1,2,3,6,7\n";
-    let mut reader: Reader<14> = Reader::new();
+    let input = b"0,1,2,3,4,5,6,7";
+    let mut reader: Reader<2> = Reader::new();
 
     let result: Result<Data> = reader.deserialize_from_slice(&input[..]);
 
     assert_eq!(
         result,
         Ok(Data {
-            t: Struct { x: 0, y: 1 },
-            a: Struct { x: 2, y: 3 },
+            t: (0, 1),
+            a: [2, 3, 4, 5],
             s: Struct { x: 6, y: 7 },
         })
     );
+}
+
+#[test]
+fn compound_missing_fields() {
+    #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+    struct Struct {
+        x: i32,
+        y: i32,
+    }
+
+    #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+    struct Data {
+        t: (i32, i32),
+        a: [i32; 4],
+        s: Struct,
+    }
+
+    let input = b"0,1,2,3\n4,5,6,7\n";
+    let mut reader: Reader<2> = Reader::new();
+
+    let result: Result<Data> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Err(Error::Custom));
+}
+
+#[test]
+fn array_too_many_fields() {
+    let input = b"0,1,2,3";
+    let mut reader: Reader<2> = Reader::new();
+
+    let result: Result<[u8; 3]> = reader.deserialize_from_slice(&input[..]);
+
+    assert_eq!(result, Ok([0, 1, 2]));
 }
