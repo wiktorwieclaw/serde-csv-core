@@ -12,11 +12,13 @@ pub struct Reader<const N: usize> {
 }
 
 impl<const N: usize> Reader<N> {
+    /// Constructs a new reader.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self::from_inner(csv_core::Reader::new())
     }
 
+    /// Constructs a new reader from [`csv_core::Reader`].
     pub fn from_inner(inner: csv_core::Reader) -> Self {
         Self {
             inner,
@@ -24,6 +26,7 @@ impl<const N: usize> Reader<N> {
         }
     }
 
+    /// Consumes the reader and returns [`csv_core::Reader`].
     pub fn into_inner(self) -> csv_core::Reader {
         self.inner
     }

@@ -39,7 +39,7 @@
 //!
 //! assert_eq!(&csv[..nwritten], b"Poland,Cracow,766683\nJapan,Tokyo,13515271\n");
 //!
-//! # Ok::<(), anyhow::Error>(())
+//! # Ok::<(), serde_csv_core::ser::Error>(())
 //! ```
 //!
 //! # Deserialization
@@ -47,7 +47,7 @@
 //! `N` is a capacity of an internal buffer that's used to temporarily store unescaped fields.
 //! ```
 //! use heapless::{String, Vec};
-//! use serde::{Deserialize, Serialize};
+//! use serde::Deserialize;
 //!
 //! #[derive(Debug, PartialEq, Eq, Deserialize)]
 //! struct Record {
@@ -64,8 +64,8 @@
 //!
 //! while nread < csv.len() {
 //!     let (record, n)  = reader.deserialize_from_slice::<Record>(&csv[nread..])?;
-//!     nread += n;
 //!     records.push(record);
+//!     nread += n;
 //! }
 //!
 //! assert_eq!(records, &[
@@ -80,7 +80,7 @@
 //!         population: 13_515_271,
 //!     },
 //! ]);
-//! # Ok::<(), anyhow::Error>(())
+//! # Ok::<(), serde_csv_core::de::Error>(())
 //! ```
 //!
 //! # Configuration

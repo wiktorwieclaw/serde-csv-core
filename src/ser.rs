@@ -10,15 +10,18 @@ pub struct Writer {
 }
 
 impl Writer {
+    /// Constructs a new writer.
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self::from_inner(csv_core::Writer::new())
     }
 
+    /// Constructs a new writer from [`csv_core::Writer`].
     pub fn from_inner(inner: csv_core::Writer) -> Self {
         Self { inner }
     }
 
+    /// Consumes the writer and returns [`csv_core::Writer`].
     pub fn into_inner(self) -> csv_core::Writer {
         self.inner
     }
@@ -47,10 +50,10 @@ impl Writer {
     /// };
     ///
     /// let mut writer = serde_csv_core::Writer::new();
-    /// let mut buf = [0; 32];
-    /// let len = writer.serialize_to_slice(&record, &mut buf)?;
+    /// let mut csv = [0; 32];
+    /// let nwritten = writer.serialize_to_slice(&record, &mut csv)?;
     ///
-    /// assert_eq!(&buf[..len], b"Poland,Cracow,766683\n");
+    /// assert_eq!(&csv[..nwritten], b"Poland,Cracow,766683\n");
     /// # Ok::<(), serde_csv_core::ser::Error>(())
     /// ```
     pub fn serialize_to_slice<T>(&mut self, value: &T, output: &mut [u8]) -> Result<usize>

@@ -27,5 +27,4 @@ ryu = "1.0.13"
 serde = { version = "1.0.159", default-features = false }
 
 [dev-dependencies]
-anyhow = "1.0.70"
 serde = { version = "1.0.159", default-features = false, features = ["derive", "std"] }
