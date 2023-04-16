@@ -360,11 +360,11 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant> {
-        unimplemented!("serialize_tuple_variant is not supported");
+        unimplemented!("`Serializer::serialize_tuple_variant` is not supported");
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
-        unimplemented!("serialize_map is not supported");
+        unimplemented!("`Serializer::serialize_map` is not supported");
     }
 
     fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
@@ -378,14 +378,14 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStructVariant> {
-        unimplemented!("serialize_struct_variant is not supported");
+        unimplemented!("`Serializer::serialize_struct_variant` is not supported");
     }
 
     fn collect_str<T: ?Sized>(self, _value: &T) -> Result<Self::Ok>
     where
         T: core::fmt::Display,
     {
-        unimplemented!("collect_str is not supported");
+        unimplemented!("`Serializer::collect_str` is not supported");
     }
 }
 
