@@ -4,7 +4,7 @@ fn serialize_unit() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -16,7 +16,7 @@ fn serialize_pair_units() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, ",\n");
@@ -28,7 +28,7 @@ fn serialize_none() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -40,7 +40,7 @@ fn serialize_some() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -52,7 +52,7 @@ fn serialize_empty_slice() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"\"\n");
@@ -64,7 +64,7 @@ fn serialize_slice() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "0,1,2,3\n");
@@ -76,7 +76,7 @@ fn serialize_string_with_comma() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "\"a,b,c\"\n");
@@ -105,8 +105,68 @@ fn serialize_compound() {
 
     let mut writer = serde_csv_core::Writer::new();
     let mut buf = [0; 32];
-    let nwritten = writer.serialize_to_slice(&data, &mut buf).unwrap();
+    let nwritten = writer.serialize(&data, &mut buf).unwrap();
     let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
 
     assert_eq!(record, "0,1,2,3,4,5,6,7\n");
+}
+
+#[test]
+fn serialize_enum() {
+    #[derive(serde::Serialize)]
+    enum Data {
+        A,
+        B,
+    }
+
+    let data_a = Data::A;
+    let data_b = Data::B;
+
+    let mut writer = serde_csv_core::Writer::new();
+    let mut buf = [0; 32];
+
+    let nwritten = writer.serialize(&data_a, &mut buf).unwrap();
+    let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
+    assert_eq!(record, "A\n");
+
+    let nwritten = writer.serialize(&data_b, &mut buf).unwrap();
+    let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
+    assert_eq!(record, "B\n");
+}
+
+#[test]
+#[should_panic(
+    expected = "not implemented: `Serializer::serialize_newtype_variant` is not supported"
+)]
+fn serialize_stateful_enum() {
+    #[derive(serde::Serialize)]
+    struct A {
+        x: i32,
+        y: i32,
+    }
+
+    #[derive(serde::Serialize)]
+    struct B {
+        x: i32,
+    }
+
+    #[derive(serde::Serialize)]
+    enum Data {
+        A(A),
+        B(B),
+    }
+
+    let data_a = Data::A(A { x: 0, y: 1 });
+    let data_b = Data::B(B { x: 0 });
+
+    let mut writer = serde_csv_core::Writer::new();
+    let mut buf = [0; 32];
+
+    let nwritten = writer.serialize(&data_a, &mut buf).unwrap();
+    let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
+    assert_eq!(record, "0,1\n");
+
+    let nwritten = writer.serialize(&data_b, &mut buf).unwrap();
+    let record = std::str::from_utf8(&buf[..nwritten]).unwrap();
+    assert_eq!(record, "0\n");
 }

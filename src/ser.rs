@@ -1,29 +1,43 @@
 //! Serialize a Rust data structure into CSV data.
 
+use core::borrow::Borrow;
 #[cfg(feature = "heapless")]
 use heapless::Vec;
 use serde::{ser, Serialize};
 
-/// Wrapper for [`csv_core::Writer`] that provides methods for serialization.
+/// Wrapper for [`csv_core::Writer`] that provides methods for serialization using [`serde`].
+#[derive(Debug)]
 pub struct Writer {
     inner: csv_core::Writer,
 }
 
+impl Default for Writer {
+    fn default() -> Self {
+        Self::from_builder(csv_core::WriterBuilder::new())
+    }
+}
+
 impl Writer {
     /// Constructs a new writer.
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        Self::from_inner(csv_core::Writer::new())
+        Self::default()
     }
 
-    /// Constructs a new writer from [`csv_core::Writer`].
-    pub fn from_inner(inner: csv_core::Writer) -> Self {
-        Self { inner }
-    }
-
-    /// Consumes the writer and returns [`csv_core::Writer`].
-    pub fn into_inner(self) -> csv_core::Writer {
-        self.inner
+    /// Constructs a new writer from [`csv_core::WriterBuilder`].
+    ///
+    /// # Example
+    /// ```
+    /// use serde_csv_core::csv_core;
+    ///
+    /// let writer = serde_csv_core::Writer::from_builder(
+    ///     csv_core::WriterBuilder::new()
+    ///         .delimiter(b'-')
+    /// );
+    /// ```
+    pub fn from_builder(builder: impl Borrow<csv_core::WriterBuilder>) -> Self {
+        Self {
+            inner: builder.borrow().build(),
+        }
     }
 
     /// Serializes the given value as a CSV byte slice.
@@ -51,12 +65,12 @@ impl Writer {
     ///
     /// let mut writer = serde_csv_core::Writer::new();
     /// let mut csv = [0; 32];
-    /// let nwritten = writer.serialize_to_slice(&record, &mut csv)?;
+    /// let nwritten = writer.serialize(&record, &mut csv)?;
     ///
     /// assert_eq!(&csv[..nwritten], b"Poland,Cracow,766683\n");
     /// # Ok::<(), serde_csv_core::ser::Error>(())
     /// ```
-    pub fn serialize_to_slice<T>(&mut self, value: &T, output: &mut [u8]) -> Result<usize>
+    pub fn serialize<T>(&mut self, value: &T, output: &mut [u8]) -> Result<usize>
     where
         T: Serialize + ?Sized,
     {
@@ -117,7 +131,7 @@ impl Writer {
         // always safe since buf has capacity N
         unsafe { buf.resize_default(N).unwrap_unchecked() };
 
-        let len = self.serialize_to_slice(value, &mut buf)?;
+        let len = self.serialize(value, &mut buf)?;
         buf.truncate(len);
         Ok(buf)
     }
@@ -167,6 +181,7 @@ impl defmt::Format for Error {
 }
 
 /// A structure for serializing Rust values into CSV.
+#[derive(Debug)]
 pub struct Serializer<'a> {
     writer: &'a mut csv_core::Writer,
     output: &'a mut [u8],
@@ -338,12 +353,12 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
         _name: &'static str,
         _variant_index: u32,
         _variant: &'static str,
-        value: &T,
+        _value: &T,
     ) -> Result<Self::Ok>
     where
         T: ser::Serialize,
     {
-        value.serialize(self)
+        unimplemented!("`Serializer::serialize_newtype_variant` is not supported");
     }
 
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {

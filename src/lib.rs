@@ -32,9 +32,8 @@
 //! let mut writer = serde_csv_core::Writer::new();
 //! let mut csv = [0; 128];
 //! let mut nwritten = 0;
-//!
 //! for record in &records {
-//!     nwritten += writer.serialize_to_slice(&record, &mut csv[nwritten..])?;
+//!     nwritten += writer.serialize(&record, &mut csv[nwritten..])?;
 //! }
 //!
 //! assert_eq!(&csv[..nwritten], b"Poland,Cracow,766683\nJapan,Tokyo,13515271\n");
@@ -61,11 +60,10 @@
 //! let mut reader = serde_csv_core::Reader::<32>::new();
 //! let mut records: Vec<Record, 2> = Vec::new();
 //! let mut nread = 0;
-//!
 //! while nread < csv.len() {
-//!     let (record, n)  = reader.deserialize_from_slice::<Record>(&csv[nread..])?;
-//!     records.push(record);
+//!     let (record, n)  = reader.deserialize::<Record>(&csv[nread..])?;
 //!     nread += n;
+//!     records.push(record);
 //! }
 //!
 //! assert_eq!(records, &[
@@ -86,15 +84,15 @@
 //! # Configuration
 //! Both [`Writer`] and [`Reader`] are wrappers for [`csv_core::Writer`]
 //! and [`csv_core::Reader`], respectively. You can use [`csv_core::WriterBuilder`]
-//! and [`csv_core::ReaderBuilder`] in combination with `from_inner` constructors
+//! and [`csv_core::ReaderBuilder`] in combination with `from_builder` constructors
 //! to tweak things like field delimiters etc.
 //! ```
 //! use serde_csv_core::csv_core;
 //!
-//! let inner = csv_core::WriterBuilder::new()
-//!     .delimiter(b'-')
-//!     .build();
-//! let writer = serde_csv_core::Writer::from_inner(inner);
+//! let writer = serde_csv_core::Writer::from_builder(
+//!     csv_core::WriterBuilder::new()
+//!         .delimiter(b'-')
+//! );
 //! ```
 #![no_std]
 

@@ -5,7 +5,7 @@ fn bool_true() {
     let input = b"true";
     let mut reader: Reader<4> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<bool>(&input[..]);
+    let result = reader.deserialize::<bool>(&input[..]);
 
     assert_eq!(result, Ok((true, 4)))
 }
@@ -15,7 +15,7 @@ fn bool_false() {
     let input = b"false";
     let mut reader: Reader<5> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<bool>(&input[..]);
+    let result = reader.deserialize::<bool>(&input[..]);
 
     assert_eq!(result, Ok((false, 5)))
 }
@@ -25,7 +25,7 @@ fn bool_empty() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<bool>(&input[..]);
+    let result = reader.deserialize::<bool>(&input[..]);
 
     assert_eq!(result, Err(Error::InvalidBool))
 }
@@ -35,7 +35,7 @@ fn bool_overflow() {
     let input = b"overflow";
     let mut reader: Reader<3> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<bool>(&input[..]);
+    let result = reader.deserialize::<bool>(&input[..]);
 
     assert_eq!(result, Err(Error::Overflow))
 }
@@ -45,7 +45,7 @@ fn i8_positive() {
     let input = b"123";
     let mut reader: Reader<3> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<i8>(&input[..]);
+    let result = reader.deserialize::<i8>(&input[..]);
 
     assert_eq!(result, Ok((123, 3)))
 }
@@ -55,7 +55,7 @@ fn i8_negative() {
     let input = b"-123";
     let mut reader: Reader<4> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<i8>(&input[..]);
+    let result = reader.deserialize::<i8>(&input[..]);
 
     assert_eq!(result, Ok((-123, 4)))
 }
@@ -65,7 +65,7 @@ fn i8_invalid() {
     let input = b"256";
     let mut reader: Reader<3> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<i8>(&input[..]);
+    let result = reader.deserialize::<i8>(&input[..]);
 
     assert_eq!(result, Err(Error::InvalidInt))
 }
@@ -75,7 +75,7 @@ fn char_valid() {
     let input = b"\xc4\x85";
     let mut reader: Reader<2> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<char>(&input[..]);
+    let result = reader.deserialize::<char>(&input[..]);
 
     assert_eq!(result, Ok(('ą', 2)))
 }
@@ -85,7 +85,7 @@ fn char_invalid() {
     let input = b"\xc4\x85\xc4\x85";
     let mut reader: Reader<4> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<char>(&input[..]);
+    let result = reader.deserialize::<char>(&input[..]);
 
     assert_eq!(result, Err(Error::InvalidUtf8Char))
 }
@@ -98,7 +98,7 @@ fn visit_str() {
     let input = b"192.168.0.1";
     let mut reader: Reader<11> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<std::net::Ipv4Addr>(&input[..]);
+    let result = reader.deserialize::<std::net::Ipv4Addr>(&input[..]);
 
     assert_eq!(result, Ok((Ipv4Addr::new(192, 168, 0, 1), 11)))
 }
@@ -108,7 +108,7 @@ fn some() {
     let input = b"123";
     let mut reader: Reader<3> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<Option<i32>>(&input[..]);
+    let result = reader.deserialize::<Option<i32>>(&input[..]);
 
     assert_eq!(result, Ok((Some(123), 3)))
 }
@@ -118,7 +118,7 @@ fn none() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<Option<i32>>(&input[..]);
+    let result = reader.deserialize::<Option<i32>>(&input[..]);
 
     assert_eq!(result, Ok((None, 0)))
 }
@@ -128,7 +128,7 @@ fn unit_valid() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<()>(&input[..]);
+    let result = reader.deserialize::<()>(&input[..]);
 
     assert_eq!(result, Ok(((), 0)))
 }
@@ -138,7 +138,7 @@ fn unit_invalid() {
     let input = b"abcd";
     let mut reader: Reader<4> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<()>(&input[..]);
+    let result = reader.deserialize::<()>(&input[..]);
 
     assert_eq!(result, Err(Error::ExpectedEmpty))
 }
@@ -148,7 +148,7 @@ fn empty_records() {
     let input = b",,,";
     let mut reader: Reader<1> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<(i32, i32)>(&input[..]);
+    let result = reader.deserialize::<(i32, i32)>(&input[..]);
 
     assert_eq!(result, Err(Error::InvalidInt))
 }
@@ -161,7 +161,7 @@ fn struct_0() {
     let input = b"";
     let mut reader: Reader<0> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<Record>(&input[..]);
+    let result = reader.deserialize::<Record>(&input[..]);
 
     assert_eq!(result, Ok((Record, 0)))
 }
@@ -177,7 +177,7 @@ fn struct_2() {
     let input = b"0,1";
     let mut reader: Reader<2> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<Record>(&input[..]);
+    let result = reader.deserialize::<Record>(&input[..]);
 
     assert_eq!(result, Ok((Record { x: 0, y: 1 }, 3)))
 }
@@ -194,7 +194,7 @@ fn c_enum() {
     let input = b"B";
     let mut reader: Reader<1> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<Record>(&input[..]);
+    let result = reader.deserialize::<Record>(&input[..]);
 
     assert_eq!(result, Ok((Record::B, 1)))
 }
@@ -217,7 +217,7 @@ fn compound() {
     let input = b"0,1,2,3,4,5,6,7";
     let mut reader: Reader<2> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<Data>(&input[..]);
+    let result = reader.deserialize::<Data>(&input[..]);
 
     assert_eq!(
         result,
@@ -250,7 +250,7 @@ fn compound_missing_fields() {
     let input = b"0,1,2,3\n4,5,6,7\n";
     let mut reader: Reader<2> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<Data>(&input[..]);
+    let result = reader.deserialize::<Data>(&input[..]);
 
     assert_eq!(result, Err(Error::Custom));
 }
@@ -260,7 +260,39 @@ fn array_too_many_fields() {
     let input = b"0,1,2,3";
     let mut reader: Reader<2> = Reader::new();
 
-    let result = reader.deserialize_from_slice::<[u8; 3]>(&input[..]);
+    let result = reader.deserialize::<[u8; 3]>(&input[..]);
 
     assert_eq!(result, Ok(([0, 1, 2], 6)));
+}
+
+#[test]
+#[should_panic(
+    expected = "not implemented: `VariantAccess::newtype_variant_seed` is not supported"
+)]
+fn stateful_enum() {
+    #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+    struct A {
+        x: i32,
+        y: i32,
+    }
+
+    #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+    struct B {
+        x: i32,
+    }
+
+    #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+    enum Data {
+        A(A),
+        B(B),
+    }
+
+    let input = b"A,0,1\nB,0";
+    let mut reader: Reader<16> = Reader::new();
+
+    let (value, nread) = reader.deserialize::<Data>(&input[..]).unwrap();
+    assert_eq!(value, Data::A(A { x: 0, y: 1 }));
+
+    let (value, _) = reader.deserialize::<Data>(&input[nread..]).unwrap();
+    assert_eq!(value, Data::B(B { x: 0 }));
 }

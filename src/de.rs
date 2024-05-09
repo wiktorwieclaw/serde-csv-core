@@ -1,40 +1,52 @@
 //! Deserialize CSV data into a Rust data structure.
 
+use core::borrow::Borrow;
 use lexical_parse_float::FromLexical;
 use serde::{de::DeserializeSeed, Deserialize};
 
-/// Wrapper for [`csv_core::Reader`] that provides methods for deserialization.
+/// Wrapper for [`csv_core::Reader`] that provides methods for deserialization using [`serde`].
 ///
 /// `N` is a capacity of an internal buffer that's used to temporarily store unescaped fields.
+#[derive(Debug)]
 pub struct Reader<const N: usize> {
     inner: csv_core::Reader,
     field_buffer: [u8; N],
 }
 
+impl<const N: usize> Default for Reader<N> {
+    fn default() -> Self {
+        Self::from_builder(csv_core::ReaderBuilder::new())
+    }
+}
+
 impl<const N: usize> Reader<N> {
     /// Constructs a new reader.
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        Self::from_inner(csv_core::Reader::new())
+        Self::default()
     }
 
-    /// Constructs a new reader from [`csv_core::Reader`].
-    pub fn from_inner(inner: csv_core::Reader) -> Self {
+    /// Constructs a new reader from [`csv_core::ReaderBuilder`].
+    ///
+    /// # Example
+    /// ```
+    /// use serde_csv_core::csv_core;
+    ///
+    /// let reader = serde_csv_core::Reader::<16>::from_builder(
+    ///     csv_core::ReaderBuilder::new()
+    ///         .delimiter(b'-')
+    /// );
+    /// ```
+    pub fn from_builder(builder: impl Borrow<csv_core::ReaderBuilder>) -> Self {
         Self {
-            inner,
+            inner: builder.borrow().build(),
             field_buffer: [0; N],
         }
     }
 
-    /// Consumes the reader and returns [`csv_core::Reader`].
-    pub fn into_inner(self) -> csv_core::Reader {
-        self.inner
-    }
-
     /// Deserializes a given CSV byte slice into a value of type `T`.
-    /// 
+    ///
     /// The second element of the resulting tuple is a number of bytes read.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use heapless::String;
@@ -50,7 +62,7 @@ impl<const N: usize> Reader<N> {
     /// let csv = b"Poland,Cracow,766683\n";
     ///
     /// let mut reader = serde_csv_core::Reader::<32>::new();
-    /// let (record, nread)  = reader.deserialize_from_slice::<Record>(&csv[..])?;
+    /// let (record, nread)  = reader.deserialize::<Record>(&csv[..])?;
     ///
     /// assert_eq!(record, Record {
     ///     country: "Poland".into(),
@@ -60,7 +72,7 @@ impl<const N: usize> Reader<N> {
     /// assert_eq!(nread, 21);
     /// # Ok::<(), serde_csv_core::de::Error>(())
     /// ```
-    pub fn deserialize_from_slice<'de, T>(&mut self, input: &[u8]) -> Result<(T, usize)>
+    pub fn deserialize<'de, T>(&mut self, input: &[u8]) -> Result<(T, usize)>
     where
         T: Deserialize<'de>,
     {
@@ -87,7 +99,7 @@ pub enum Error {
     InvalidUtf8Char,
     /// Invalid UTF-8 encoded string.
     InvalidUtf8String,
-    /// Error with a custom message had to be discard.
+    /// Error with a custom message had to be discarded.
     Custom,
 }
 
@@ -139,6 +151,7 @@ impl defmt::Format for Error {
     }
 }
 
+#[derive(Debug)]
 struct Deserializer<'a, const N: usize> {
     reader: &'a mut Reader<N>,
     input: &'a [u8],
@@ -372,11 +385,11 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
         self.deserialize_unit(visitor)
     }
 
-    fn deserialize_newtype_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
+    fn deserialize_newtype_struct<V>(self, _name: &'static str, _visitor: V) -> Result<V::Value>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_newtype_struct(self)
+        unimplemented!("`Deserializer::deserialize_newtype_struct` is not supported");
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
@@ -460,7 +473,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Dese
     }
 
     fn newtype_variant_seed<U: DeserializeSeed<'de>>(self, _seed: U) -> Result<U::Value> {
-        unimplemented!("`VariantAccess::newtype_variant_seed` is not implemented");
+        unimplemented!("`VariantAccess::newtype_variant_seed` is not supported");
     }
 
     fn tuple_variant<V: serde::de::Visitor<'de>>(
@@ -468,7 +481,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Dese
         _len: usize,
         _visitor: V,
     ) -> Result<V::Value> {
-        unimplemented!("`VariantAccess::tuple_variant` is not implemented");
+        unimplemented!("`VariantAccess::tuple_variant` is not supported");
     }
 
     fn struct_variant<V: serde::de::Visitor<'de>>(
@@ -476,7 +489,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Dese
         _fields: &'static [&'static str],
         _visitor: V,
     ) -> Result<V::Value> {
-        unimplemented!("`VariantAccess::struct_variant` is not implemented");
+        unimplemented!("`VariantAccess::struct_variant` is not supported");
     }
 }
 
