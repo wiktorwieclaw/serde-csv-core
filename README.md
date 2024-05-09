@@ -37,9 +37,8 @@ let records = [
 let mut writer = serde_csv_core::Writer::new();
 let mut csv = [0; 128];
 let mut nwritten = 0;
-
 for record in &records {
-    nwritten += writer.serialize_to_slice(&record, &mut csv[nwritten..])?;
+    nwritten += writer.serialize(&record, &mut csv[nwritten..])?;
 }
 
 assert_eq!(&csv[..nwritten], b"Poland,Cracow,766683\nJapan,Tokyo,13515271\n");
@@ -64,9 +63,8 @@ let csv = b"Poland,Cracow,766683\nJapan,Tokyo,13515271\n";
 let mut reader = serde_csv_core::Reader::<32>::new();
 let mut records: Vec<Record, 2> = Vec::new();
 let mut nread = 0;
-
 while nread < csv.len() {
-    let (record, n)  = reader.deserialize_from_slice::<Record>(&csv[nread..])?;
+    let (record, n)  = reader.deserialize::<Record>(&csv[nread..])?;
     records.push(record);
     nread += n;
 }
