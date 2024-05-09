@@ -64,7 +64,7 @@ let mut reader = serde_csv_core::Reader::<32>::new();
 let mut records: Vec<Record, 2> = Vec::new();
 let mut nread = 0;
 while nread < csv.len() {
-    let (record, n)  = reader.deserialize::<Record>(&csv[nread..])?;
+    let (record, n) = reader.deserialize::<Record>(&csv[nread..])?;
     records.push(record);
     nread += n;
 }

@@ -317,9 +317,9 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
         self.field([])
     }
 
-    fn serialize_some<T: ?Sized>(self, value: &T) -> Result<Self::Ok>
+    fn serialize_some<T>(self, value: &T) -> Result<Self::Ok>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         value.serialize(self)
     }
@@ -341,14 +341,14 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
         self.field(variant)
     }
 
-    fn serialize_newtype_struct<T: ?Sized>(self, _name: &'static str, value: &T) -> Result<Self::Ok>
+    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<Self::Ok>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T: ?Sized>(
+    fn serialize_newtype_variant<T>(
         self,
         _name: &'static str,
         _variant_index: u32,
@@ -356,7 +356,7 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
         _value: &T,
     ) -> Result<Self::Ok>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         unimplemented!("`Serializer::serialize_newtype_variant` is not supported");
     }
@@ -405,9 +405,9 @@ impl<'a, 'b> ser::Serializer for &'a mut Serializer<'b> {
         unimplemented!("`Serializer::serialize_struct_variant` is not supported");
     }
 
-    fn collect_str<T: ?Sized>(self, _value: &T) -> Result<Self::Ok>
+    fn collect_str<T>(self, _value: &T) -> Result<Self::Ok>
     where
-        T: core::fmt::Display,
+        T: core::fmt::Display + ?Sized,
     {
         unimplemented!("`Serializer::collect_str` is not supported");
     }
@@ -427,9 +427,9 @@ impl<'a, 'b> Compound<'a, 'b> {
         }
     }
 
-    fn element<T: ?Sized>(&mut self, value: &T) -> Result<()>
+    fn element<T>(&mut self, value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         if self.nfields > 0 {
             self.serializer.delimiter()?;
@@ -444,9 +444,9 @@ impl ser::SerializeSeq for Compound<'_, '_> {
 
     type Error = Error;
 
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<()>
+    fn serialize_element<T>(&mut self, value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         self.element(value)
     }
@@ -461,9 +461,9 @@ impl ser::SerializeTuple for Compound<'_, '_> {
 
     type Error = Error;
 
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<()>
+    fn serialize_element<T>(&mut self, value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         self.element(value)
     }
@@ -478,9 +478,9 @@ impl ser::SerializeTupleStruct for Compound<'_, '_> {
 
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<()>
+    fn serialize_field<T>(&mut self, value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         self.element(value)
     }
@@ -495,9 +495,9 @@ impl ser::SerializeStruct for Compound<'_, '_> {
 
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(&mut self, _key: &'static str, value: &T) -> Result<()>
+    fn serialize_field<T>(&mut self, _key: &'static str, value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         self.element(value)
     }
@@ -515,9 +515,9 @@ impl ser::SerializeTupleVariant for Unreachable {
 
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(&mut self, _value: &T) -> Result<()>
+    fn serialize_field<T>(&mut self, _value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         unreachable!()
     }
@@ -532,16 +532,16 @@ impl ser::SerializeMap for Unreachable {
 
     type Error = Error;
 
-    fn serialize_key<T: ?Sized>(&mut self, _key: &T) -> Result<()>
+    fn serialize_key<T>(&mut self, _key: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         unreachable!()
     }
 
-    fn serialize_value<T: ?Sized>(&mut self, _value: &T) -> Result<()>
+    fn serialize_value<T>(&mut self, _value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         unreachable!()
     }
@@ -556,9 +556,9 @@ impl ser::SerializeStructVariant for Unreachable {
 
     type Error = Error;
 
-    fn serialize_field<T: ?Sized>(&mut self, _key: &'static str, _value: &T) -> Result<()>
+    fn serialize_field<T>(&mut self, _key: &'static str, _value: &T) -> Result<()>
     where
-        T: ser::Serialize,
+        T: ser::Serialize + ?Sized,
     {
         unreachable!()
     }
