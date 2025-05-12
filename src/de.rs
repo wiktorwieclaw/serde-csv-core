@@ -223,7 +223,7 @@ impl<'a, const N: usize> Deserializer<'a, N> {
     }
 }
 
-impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deserializer<'b, N> {
+impl<'de, const N: usize> serde::de::Deserializer<'de> for &mut Deserializer<'_, N> {
     type Error = Error;
 
     fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value>
@@ -465,7 +465,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     }
 }
 
-impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Deserializer<'b, N> {
+impl<'de, const N: usize> serde::de::VariantAccess<'de> for &mut Deserializer<'_, N> {
     type Error = Error;
 
     fn unit_variant(self) -> Result<()> {
@@ -493,7 +493,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::VariantAccess<'de> for &'a mut Dese
     }
 }
 
-impl<'de, 'a, 'b, const N: usize> serde::de::EnumAccess<'de> for &'a mut Deserializer<'b, N> {
+impl<'de, const N: usize> serde::de::EnumAccess<'de> for &mut Deserializer<'_, N> {
     type Error = Error;
 
     type Variant = Self;
@@ -509,7 +509,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::EnumAccess<'de> for &'a mut Deseria
     }
 }
 
-impl<'de, 'a, 'b, const N: usize> serde::de::SeqAccess<'de> for &'a mut Deserializer<'b, N> {
+impl<'de, const N: usize> serde::de::SeqAccess<'de> for &mut Deserializer<'_, N> {
     type Error = Error;
 
     fn next_element_seed<V>(&mut self, seed: V) -> Result<Option<V::Value>>
