@@ -1,3 +1,6 @@
+# 0.3.2
+- Implement `String` deserialization. 
+
 # 0.3
 - Implemented `Debug` trait for `Writer`, `Reader`, `Serializer`, `Deserializer`
 - Implemented `Default` trait for `Writer`, `Reader`

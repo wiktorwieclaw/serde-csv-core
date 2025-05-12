@@ -1,7 +1,7 @@
 [package]
 name = "serde-csv-core"
 edition = "2021"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Wiktor Więcław <lonevixu@gmail.com>"]
 categories = ["embedded", "encoding", "no-std"]
 description = "CSV serialization for no_std crates"
