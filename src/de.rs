@@ -334,11 +334,11 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
         visitor.visit_str(self.read_str()?)
     }
 
-    fn deserialize_string<V>(self, _visitor: V) -> Result<V::Value>
+    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value>
     where
         V: serde::de::Visitor<'de>,
     {
-        unimplemented!("`Deserializer::deserialize_any` is not supported");
+        visitor.visit_str(self.read_str()?)
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value>
