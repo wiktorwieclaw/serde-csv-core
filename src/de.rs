@@ -352,7 +352,7 @@ impl<'de, 'a, 'b, const N: usize> serde::de::Deserializer<'de> for &'a mut Deser
     where
         V: serde::de::Visitor<'de>,
     {
-        unimplemented!("`Deserializer::deserialize_buf` is not supported");
+        unimplemented!("`Deserializer::deserialize_byte_buf` is not supported");
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value>

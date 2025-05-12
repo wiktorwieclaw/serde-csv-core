@@ -104,6 +104,16 @@ fn visit_str() {
 }
 
 #[test]
+fn visit_dynamically_allocated_string() {
+    let input = b"hello";
+    let mut reader: Reader<5> = Reader::new();
+
+    let result = reader.deserialize::<String>(&input[..]);
+
+    assert_eq!(result, Ok((String::from("hello"), 5)))
+}
+
+#[test]
 fn some() {
     let input = b"123";
     let mut reader: Reader<3> = Reader::new();
